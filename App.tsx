@@ -1,10 +1,14 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from './services/supabase';
 import Header from './components/Header';
 import Beranda from './pages/Beranda';
 import ChecklistPage from './pages/ChecklistPage';
 import TentangGGEdu from './pages/TentangGGEdu';
-import AuthComponent from './components/Auth'; // Import AuthComponent
+import AuthComponent from './components/Auth';
+import ProfilePage from './pages/ProfilePage'; // Import ProfilePage
+import NotificationManager from './components/NotificationManager'; // Import NotificationManager
 
 // Import halaman konsolidasi yang baru
 import SemuaGRK from './pages/grk/SemuaGRK';
@@ -12,83 +16,80 @@ import SemuaMetana from './pages/metana/SemuaMetana';
 import SemuaSolusi from './pages/solusi/SemuaSolusi';
 
 export type Page = {
-  main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang';
-  sub?: string; // Sub-page is now optional for consolidated pages
+  main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang' | 'profile';
+  sub?: string;
 }
 
 const App: React.FC = () => {
-  // Buat sesi dummy dengan useRef agar user_metadata bisa diupdate
-  // Dipindahkan ke dalam komponen App agar useRef dipanggil dengan benar
-  const dummySession = useRef<Session>({
-    access_token: 'dummy-access-token',
-    token_type: 'bearer',
-    user: {
-      id: 'dummy-user-id',
-      app_metadata: {},
-      // Inisialisasi username default agar Header bisa menampilkan "Tamu" atau nama pengguna
-      user_metadata: { username: 'Tamu' },
-      aud: 'authenticated',
-      created_at: new Date().toISOString(),
-    },
-    refresh_token: 'dummy-refresh-token',
-    expires_in: 3600,
-  });
-
+  const [session, setSession] = useState<Session | null>(null);
   const [activePage, setActivePage] = useState<Page>({ main: 'beranda' });
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State untuk melacak status login
-  const [showAuthModal, setShowAuthModal] = useState(false); // State untuk mengontrol visibilitas modal auth
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+  
+  // State untuk memicu refresh header saat profil diupdate
+  const [profileVersion, setProfileVersion] = useState(0);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsLoadingSession(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        setActivePage({ main: 'beranda' });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const isLoggedIn = !!session;
 
   const handleNavigate = (main: Page['main'], sub?: string) => {
-    // Jika mencoba mengakses checklist dan belum login, tampilkan modal auth
-    if (main === 'checklist' && !isLoggedIn) {
+    if ((main === 'checklist' || main === 'profile') && !isLoggedIn) {
       setShowAuthModal(true);
-      // PENTING: Atur activePage ke 'checklist' di sini.
-      // Ini memastikan ChecklistPage dirender di belakang modal login,
-      // sehingga efek blur dan overlaynya terlihat.
       setActivePage({ main, sub });
-      return; // Hentikan navigasi normal, biarkan AuthComponent yang mengontrol
+      return; 
     }
     setActivePage({ main, sub });
-    window.scrollTo(0, 0); // Scroll to top on page change
+    window.scrollTo(0, 0);
   };
 
-  const onAuthSuccess = (username?: string) => {
-    setIsLoggedIn(true);
-    setShowAuthModal(false); // Tutup modal setelah login berhasil
-    // Perbarui user_metadata di dummySession
-    if (username) {
-      dummySession.current.user.user_metadata.username = username;
+  const onAuthSuccess = () => {
+    setShowAuthModal(false);
+    if (activePage.main === 'checklist' || activePage.main === 'profile') {
+      setActivePage({ main: activePage.main });
     } else {
-      dummySession.current.user.user_metadata.username = 'Tamu'; // Default untuk guest mode
-    }
-    // Setelah login berhasil, arahkan ke halaman checklist jika itu tujuan yang diblokir
-    // atau ke beranda jika login dilakukan dari modal tanpa tujuan spesifik.
-    if (activePage.main === 'checklist') {
-      setActivePage({ main: 'checklist' }); // Langsung arahkan ke checklist
-    } else {
-      setActivePage({ main: 'beranda' }); // Default ke beranda
+      setActivePage({ main: 'beranda' });
     }
   };
 
   const onCloseAuthModal = () => {
     setShowAuthModal(false);
-    // Jika modal ditutup tanpa login, kembali ke halaman beranda
-    setActivePage({ main: 'beranda' });
+    if ((activePage.main === 'checklist' || activePage.main === 'profile') && !isLoggedIn) {
+      setActivePage({ main: 'beranda' });
+    }
   }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    // Hapus username dari dummy user metadata saat logout
-    dummySession.current.user.user_metadata.username = 'Tamu'; // Reset ke 'Tamu' atau kosongkan
-    // Arahkan kembali ke beranda setelah logout
-    handleNavigate('beranda');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+  
+  const handleProfileUpdate = () => {
+      setProfileVersion(v => v + 1);
   };
 
   const renderPage = () => {
     const { main } = activePage;
+    const user = session?.user || null;
 
     if (main === 'beranda') return <Beranda onNavigate={handleNavigate} />;
-    if (main === 'checklist') return <ChecklistPage user={dummySession.current.user} isLoggedIn={isLoggedIn} />;
+    if (main === 'checklist') return <ChecklistPage user={user} isLoggedIn={isLoggedIn} />;
+    if (main === 'profile') return <ProfilePage user={user} onProfileUpdate={handleProfileUpdate} />;
     if (main === 'tentang') return <TentangGGEdu />;
     
     if (main === 'grk') return <SemuaGRK onFinish={() => handleNavigate('beranda')} />;
@@ -98,20 +99,27 @@ const App: React.FC = () => {
     return <Beranda onNavigate={handleNavigate} />;
   };
 
+  if (isLoadingSession) {
+    return <div className="min-h-screen flex items-center justify-center bg-emerald-50">Memuat aplikasi...</div>;
+  }
+
   return (
     <div className="min-h-screen progress-background text-gray-800 flex flex-col">
-      {showAuthModal && ( // Render AuthComponent hanya jika showAuthModal true
+      {/* Logic Only Component */}
+      <NotificationManager userId={session?.user?.id} />
+
+      {showAuthModal && (
         <AuthComponent onAuthSuccess={onAuthSuccess} onClose={onCloseAuthModal} />
       )}
       
-      {/* Konten utama aplikasi tidak lagi diburamkan oleh status isLoggedIn di level App */}
       <div>
         <Header 
-          user={dummySession.current.user} // Gunakan dummySession.current.user
-          isLoggedIn={isLoggedIn} // Teruskan status login ke Header
+          user={session?.user || null}
+          isLoggedIn={isLoggedIn}
           activePage={activePage}
           onNavigate={handleNavigate}
-          onLogout={handleLogout} // Teruskan fungsi logout
+          onLogout={handleLogout}
+          profileVersion={profileVersion} // Pass version to force re-fetch in Header if needed
         />
         <main className="container mx-auto p-4 md:p-8 flex-grow">
           {renderPage()}

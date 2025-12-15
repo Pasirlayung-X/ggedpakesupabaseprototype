@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
+import { supabase } from '../services/supabase';
 import { CowIcon } from './icons/CowIcon';
 
 interface AuthComponentProps {
   onAuthSuccess: (username?: string) => void;
-  onClose: () => void; // Tambahkan prop onClose
+  onClose: () => void;
 }
 
 const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose }) => {
@@ -21,54 +23,62 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
     setError(null);
     setMessage(null);
 
-    let authUsername = username.trim();
+    const authUsername = username.trim();
 
-    if (isLogin) {
-      // Validasi untuk mode Login: username dan password
-      if (!authUsername || !password.trim()) {
-        setError('Nama Pengguna dan Kata Sandi tidak boleh kosong.');
-        setLoading(false);
-        return;
+    try {
+      if (isLogin) {
+        // Mode Login
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email, // Supabase butuh email, bukan username untuk login default
+          password: password,
+        });
+
+        if (error) throw error;
+        
+        if (data.user) {
+           setMessage(`Selamat datang kembali!`);
+           // Beri sedikit jeda agar user bisa membaca pesan sukses
+           setTimeout(() => {
+             onAuthSuccess(data.user?.user_metadata?.username);
+           }, 500);
+        }
+
+      } else {
+        // Mode Daftar
+        if (!email.trim() || !authUsername || !password.trim()) {
+          throw new Error('Semua field harus diisi.');
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              username: authUsername, // Simpan username di metadata
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+            setMessage(`Pendaftaran berhasil! Selamat datang, ${authUsername}.`);
+            setTimeout(() => {
+                onAuthSuccess(authUsername);
+            }, 500);
+        }
       }
-      // Simulasi login
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setMessage(`Selamat datang, ${authUsername}!`);
-        onAuthSuccess(authUsername);
-      } catch (e) {
-        setError('Simulasi error: Nama pengguna atau kata sandi salah.');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Validasi untuk mode Daftar
-      if (!email.trim() || !authUsername || !password.trim()) {
-        setError('Semua field harus diisi.');
-        setLoading(false);
-        return;
-      }
-      // Simulasi pendaftaran
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setMessage(`Pendaftaran ${authUsername} berhasil! Mengalihkan...`);
-        onAuthSuccess(authUsername);
-      } catch (e) {
-        setError('Simulasi error: Pendaftaran gagal.');
-      } finally {
-        setLoading(false);
-      }
+    } catch (e: any) {
+      setError(e.message || 'Terjadi kesalahan saat autentikasi.');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleGuestMode = () => {
-    onAuthSuccess('Tamu');
   };
 
   const handleSwitchMode = () => {
     setIsLogin(!isLogin);
     setError(null);
     setMessage(null);
-    // Reset semua field saat beralih mode
     setEmail('');
     setPassword('');
     setUsername('');
@@ -96,85 +106,57 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
             {isLogin ? 'Selamat Datang Kembali' : 'Buat Akun Baru'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? 'Masuk untuk melanjutkan.' : 'Bergabunglah untuk peternakan yang lebih baik.'}
+            {isLogin ? 'Masuk dengan email Anda untuk melanjutkan.' : 'Bergabunglah untuk peternakan yang lebih baik.'}
           </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleAuth}>
           <div className="rounded-md shadow-sm -space-y-px">
-            {isLogin ? (
-              // Mode Login: Username dan Password
-              <>
+            {/* Field Email selalu dibutuhkan untuk Supabase Auth standar */}
+            <div>
+                <input
+                id="email-auth"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+                placeholder="Alamat Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                />
+            </div>
+            
+            {/* Username hanya diminta saat Daftar (atau jika ingin login by username, butuh logika khusus di backend/edge function, kita pakai email untuk login sederhana) */}
+            {!isLogin && (
                 <div>
-                  <input
-                    id="username-login"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Nama Pengguna"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <input
-                    id="password-login"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Kata sandi"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </>
-            ) : (
-              // Mode Daftar: Email, Username, Password
-              <>
-                <div>
-                  <input
-                    id="email-signup"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Alamat email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <input
+                <input
                     id="username-signup"
                     name="username"
                     type="text"
                     autoComplete="username"
                     required
                     className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Nama Pengguna"
+                    placeholder="Nama Pengguna (untuk tampilan)"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                  />
+                />
                 </div>
-                <div>
-                  <input
-                    id="password-signup"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Kata sandi"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </>
             )}
+
+            <div>
+                <input
+                id="password-auth"
+                name="password"
+                type="password"
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+                placeholder="Kata sandi (min. 6 karakter)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                />
+            </div>
           </div>
 
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
@@ -190,20 +172,13 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
             </button>
           </div>
         </form>
+        
         <div className="text-sm text-center">
           <button
             onClick={handleSwitchMode}
             className="font-medium text-green-600 hover:text-green-500"
           >
             {isLogin ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Masuk'}
-          </button>
-        </div>
-        <div className="text-center mt-6">
-          <button
-            onClick={handleGuestMode}
-            className="text-sm font-medium text-gray-500 hover:text-gray-700 underline"
-          >
-            Lanjutkan sebagai Tamu
           </button>
         </div>
       </div>

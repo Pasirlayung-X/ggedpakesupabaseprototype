@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, LabelList, Cell } from 'recharts';
 
@@ -41,7 +42,7 @@ const DataMetana: React.FC<ContentPageProps> = () => {
                         <h4 className="font-bold text-xl text-blue-800 mb-4">1. Potensi Pemanasan Global (GWP-100)</h4>
                         <p className="text-sm text-gray-700 mb-4">Seberapa banyak panas yang dapat diperangkap oleh gas dibandingkan dengan CO2 selama 100 tahun.</p>
                         <div style={{ width: '100%', height: 250 }}>
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                                 <BarChart data={gwpData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                     <XAxis dataKey="gas" tickLine={false} axisLine={false} tick={axisTickStyle} />
@@ -70,7 +71,7 @@ const DataMetana: React.FC<ContentPageProps> = () => {
                         <h4 className="font-bold text-xl text-amber-800 mb-4">2. Masa Hidup di Atmosfer (Tahun)</h4>
                         <p className="text-sm text-gray-700 mb-4">Berapa lama gas ini bertahan di atmosfer sebelum terurai.</p>
                         <div style={{ width: '100%', height: 250 }}>
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                                 <BarChart data={lifetimeData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                     <XAxis dataKey="gas" tickLine={false} axisLine={false} tick={axisTickStyle} />

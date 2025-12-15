@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
@@ -37,7 +38,7 @@ const DataGRK: React.FC<ContentPageProps> = () => {
                     Menurut Organisasi Pangan dan Pertanian (FAO), sektor peternakan menyumbang sekitar <span className="font-bold text-emerald-600">14.5%</span> dari total emisi gas rumah kaca global yang disebabkan oleh manusia. Angka ini mencakup seluruh rantai pasok, mulai dari produksi pakan, fermentasi enterik, hingga pengolahan limbah.
                 </p>
                 <div className="w-full" style={{ height: '400px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minHeight={400}>
                         <PieChart>
                             <Tooltip
                                 contentStyle={tooltipContentStyle}
