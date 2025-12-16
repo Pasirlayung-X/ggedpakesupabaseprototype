@@ -126,6 +126,35 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
       }
   };
 
+  // --- ADMIN / CHEAT FUNCTION ---
+  const handleAdminUpgrade = async () => {
+    if (!user) return;
+    if (!confirm("👑 Mode Sultan: Apakah Anda yakin ingin langsung naik ke Level 25 dan membuka semua fitur?")) return;
+    
+    setSaving(true);
+    try {
+        const updates = {
+            id: user.id,
+            level: 25,
+            xp: 2500,
+            current_streak: 365,
+            longest_streak: 365,
+            avatar_id: 'methane' // Unlock avatar tertinggi
+        };
+        
+        const { error } = await supabase.from('profiles').upsert(updates);
+        if (error) throw error;
+        
+        await fetchProfile(); // Refresh data lokal
+        onProfileUpdate(); // Refresh header
+        alert("Berhasil! Anda sekarang adalah Legenda Hidup.");
+    } catch (err: any) {
+        alert("Gagal upgrade: " + err.message);
+    } finally {
+        setSaving(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -148,6 +177,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
 
       setMessage({ type: 'success', text: 'Profil berhasil disimpan!' });
       onProfileUpdate();
+      // Refresh profile local state to match saved data
+      await fetchProfile();
     } catch (error: any) {
       console.error('Error saving profile:', error);
       setMessage({ type: 'error', text: 'Gagal menyimpan profil: ' + error.message });
@@ -290,6 +321,25 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
                     </button>
                 </div>
             </form>
+
+            {/* ADMIN CHEAT BUTTON - HANYA MUNCUL JIKA USERNAME = 'dyas ganteng' */}
+            {username.toLowerCase() === 'dyas ganteng' && (
+                <div className="mt-8 pt-6 border-t border-purple-100">
+                    <button
+                        type="button"
+                        onClick={handleAdminUpgrade}
+                        className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-purple-700 transition duration-300 shadow-lg flex items-center justify-center space-x-2 border-2 border-purple-400"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-300 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>AKTIFKAN MODE SULTAN (ADMIN)</span>
+                    </button>
+                    <p className="text-center text-xs text-purple-600 mt-2 font-mono">
+                        Developer Access: Set Level 25 & Unlock All
+                    </p>
+                </div>
+            )}
         </div>
       </div>
     </div>

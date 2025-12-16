@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 
 interface AccordionProps {
@@ -20,10 +21,40 @@ const Accordion: React.FC<AccordionProps> = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Set height for smooth transition
   useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.style.maxHeight = isOpen ? `${contentRef.current.scrollHeight}px` : '0px';
+    const el = contentRef.current;
+    if (!el) return;
+
+    if (isOpen) {
+      // 1. OPENING: Set height eksplisit ke scrollHeight untuk memicu transisi CSS
+      // Inline style ini akan meng-override class 'max-h-0' jika ada
+      el.style.maxHeight = `${el.scrollHeight}px`;
+      el.style.opacity = '1';
+
+      // 2. FINISHED: Setelah durasi transisi (300ms), hapus batasan height
+      // Ini penting agar konten tidak terpotong jika browser di-resize (responsive)
+      const timer = setTimeout(() => {
+        // Cek kembali apakah masih terbuka untuk menghindari race condition
+        if (el.style.maxHeight !== '0px') {
+            el.style.maxHeight = 'none';
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    } else {
+      // 1. CLOSING: Jika saat ini 'none' (terbuka penuh), kita harus set ke pixel dulu
+      // agar transisi ke 0px bisa berjalan (animasi 'none' ke '0px' tidak jalan di CSS)
+      if (el.style.maxHeight === 'none' || !el.style.maxHeight) {
+        el.style.maxHeight = `${el.scrollHeight}px`;
+        // Force reflow agar browser sadar height sudah berubah menjadi pixel sebelum kita nol-kan
+        void el.offsetHeight;
+      }
+
+      // 2. Set ke 0 untuk menutup
+      requestAnimationFrame(() => {
+        el.style.maxHeight = '0px';
+        el.style.opacity = '0';
+      });
     }
   }, [isOpen]);
 
@@ -51,8 +82,10 @@ const Accordion: React.FC<AccordionProps> = ({
       </button>
       <div
         ref={contentRef}
-        className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'} ${contentClassName}`}
-        style={{ overflow: 'hidden' }} // Ensure content doesn't overflow during transition
+        // Gunakan class max-h-0 HANYA untuk state awal jika defaultOpen=false.
+        // Selanjutnya logika JS di useEffect akan menghandle inline style yang meng-override class ini.
+        className={`transition-all duration-300 ease-in-out ${!defaultOpen ? 'max-h-0 opacity-0' : ''} ${contentClassName}`}
+        style={{ overflow: 'hidden' }}
       >
         <div className="p-4 bg-white">
           {children}
