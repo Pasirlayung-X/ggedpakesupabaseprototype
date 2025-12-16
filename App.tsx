@@ -1,19 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from './services/supabase.ts';
-import Header from './components/Header.tsx';
-import Beranda from './pages/Beranda.tsx';
-import ChecklistPage from './pages/ChecklistPage.tsx';
-import TentangGGEdu from './pages/TentangGGEdu.tsx';
-import AuthComponent from './components/Auth.tsx';
-import ProfilePage from './pages/ProfilePage.tsx';
-import NotificationManager from './components/NotificationManager.tsx';
+import { supabase } from './services/supabase';
+import Header from './components/Header';
+import Beranda from './pages/Beranda';
+import ChecklistPage from './pages/ChecklistPage';
+import TentangGGEdu from './pages/TentangGGEdu';
+import AuthComponent from './components/Auth';
+import ProfilePage from './pages/ProfilePage';
+import NotificationManager from './components/NotificationManager';
 
 // Import halaman konsolidasi yang baru
-import SemuaGRK from './pages/grk/SemuaGRK.tsx';
-import SemuaMetana from './pages/metana/SemuaMetana.tsx';
-import SemuaSolusi from './pages/solusi/SemuaSolusi.tsx';
+import SemuaGRK from './pages/grk/SemuaGRK';
+import SemuaMetana from './pages/metana/SemuaMetana';
+import SemuaSolusi from './pages/solusi/SemuaSolusi';
 
 export type Page = {
   main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang' | 'profile';
