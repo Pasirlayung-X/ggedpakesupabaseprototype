@@ -4,10 +4,12 @@ import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import { AvatarSelector, renderAvatar } from '../components/AvatarSelector';
 import type { UserProfile } from '../types';
+import { Page } from '../App';
 
 interface ProfilePageProps {
   user: User | null;
   onProfileUpdate: () => void; // Callback untuk refresh header
+  onNavigate: (main: Page['main'], sub?: string) => void;
 }
 
 // --- TIER SYSTEM ---
@@ -25,7 +27,7 @@ const getTierInfo = (level: number) => {
     return tiers.slice().reverse().find(tier => level >= tier.level) || tiers[0];
 };
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -136,7 +138,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
         const updates = {
             id: user.id,
             level: 25,
-            xp: 2500,
+            xp: 0, // Reset XP di level baru
             current_streak: 365,
             longest_streak: 365,
             avatar_id: 'methane' // Unlock avatar tertinggi
@@ -188,7 +190,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
   };
   
   const currentTier = useMemo(() => profile ? getTierInfo(profile.level) : tiers[0], [profile]);
-  const xpForNextLevel = useMemo(() => profile ? profile.level * 100 : 100, [profile]);
+  const xpForNextLevel = useMemo(() => profile ? Math.floor(100 * Math.pow(1.25, profile.level - 1)) : 100, [profile]);
   const xpProgress = useMemo(() => profile ? (profile.xp / xpForNextLevel) * 100 : 0, [profile, xpForNextLevel]);
 
   if (!user) return <div className="p-8 text-center text-gray-500">Silakan login untuk mengatur profil.</div>;
@@ -248,6 +250,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate }) => {
                     <p className="text-xs text-indigo-500 mt-1 text-center">Dapatkan {xpForNextLevel - profile.xp} XP lagi untuk naik ke Level {profile.level + 1}!</p>
                 </div>
             </div>
+            
+             {/* Quick Action Button */}
+             <div className="mb-8 px-4">
+                <button
+                    onClick={() => onNavigate('checklist')}
+                    className="w-full bg-amber-400 text-gray-900 font-bold py-3 px-4 rounded-lg hover:bg-amber-500 transition-all duration-300 shadow-md transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span>Buka Checklist Harian</span>
+                </button>
+            </div>
+
 
             {message && (
                 <div className={`mb-6 p-3 rounded-lg text-sm transition-all duration-300 ${message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>

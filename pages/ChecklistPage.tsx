@@ -25,6 +25,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   const [tasks, setTasks] = useState<ChecklistItem[]>([]);
   const [completedItems, setCompletedItems] = useState<Set<number>>(new Set());
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   
   // State UI
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<ChecklistItem | null>(null); // Jika null, berarti mode "Tambah"
   const [claiming, setClaiming] = useState(false); // State untuk loading tombol klaim
+  const [alreadyClaimedToday, setAlreadyClaimedToday] = useState(false);
   
   // State Form
   const [formTask, setFormTask] = useState('');
@@ -59,7 +61,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   // --- LOGIKA STREAK DAN XP (MANUAL TRIGGER) ---
   const handleClaimXP = async () => {
-      if (!user) return;
+      if (!user || !profile || alreadyClaimedToday) return;
       
       if (completedItems.size === 0) {
           alert("Selesaikan setidaknya satu tugas untuk mengklaim XP hari ini!");
@@ -69,71 +71,43 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       setClaiming(true);
       
       try {
-          // 1. Ambil profil pengguna saat ini
-          let { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .maybeSingle();
+          // Salin profil saat ini untuk dimodifikasi
+          let currentProfile = { ...profile };
 
-          if (profileError) throw profileError;
-
-          // Jika profil belum ada, gunakan default values
-          if (!profile) {
-             profile = {
-                 id: user.id,
-                 username: user.user_metadata?.username || 'Peternak',
-                 level: 1,
-                 xp: 0,
-                 current_streak: 0,
-                 longest_streak: 0,
-                 last_completed_date: null,
-                 avatar_id: 'cow-1',
-                 notification_enabled: false,
-                 notification_time: '08:00:00'
-             } as UserProfile;
-          }
-
-          const lastDate = profile.last_completed_date;
-          const isSameDay = lastDate === todayStr;
-
-          let newStreak = profile.current_streak || 0;
+          const lastDate = currentProfile.last_completed_date;
           const yesterday = getYesterdayStr(todayStr);
+          let newStreak = currentProfile.current_streak || 0;
 
-          // 2. Hitung Streak (Hanya update jika HARI INI BELUM klaim)
-          // Jika isSameDay = true, streak tidak berubah (tidak nambah, tidak reset)
-          if (!isSameDay) {
-              if (lastDate === yesterday) {
-                  newStreak += 1; // Lanjut streak
-              } else {
-                  newStreak = 1; // Streak putus atau baru mulai
-              }
+          // 1. Hitung Streak (Hanya update jika HARI INI BELUM klaim)
+          if (lastDate === yesterday) {
+              newStreak += 1; // Lanjut streak
+          } else if (lastDate !== todayStr) {
+              newStreak = 1; // Streak putus atau baru mulai
           }
 
-          // 3. Hitung XP
-          // Jika hari baru: 10 XP + Bonus Streak
-          // Jika hari sama (update ulang): 5 XP (Bonus rajin update)
-          const baseXp = isSameDay ? 5 : 10;
-          const streakBonus = isSameDay ? 0 : Math.floor(newStreak / 2);
-          const xpGained = baseXp + streakBonus;
+          // 2. Hitung XP Baru
+          const xpFromTasks = completedItems.size * 5; // 5 XP per tugas
+          const streakBonus = Math.floor(newStreak / 2); // Bonus setiap 2 hari streak
+          const xpGained = xpFromTasks + streakBonus;
 
-          let newXp = (profile.xp || 0) + xpGained;
-          let newLevel = profile.level || 1;
+          let newXp = (currentProfile.xp || 0) + xpGained;
+          let newLevel = currentProfile.level || 1;
           
-          // 4. Cek kenaikan level
-          let xpForNextLevel = newLevel * 100;
+          // 3. Cek kenaikan level
+          let xpForNextLevel = Math.floor(100 * Math.pow(1.25, newLevel - 1));
           let leveledUp = false;
-          if (newXp >= xpForNextLevel) {
+          while (newXp >= xpForNextLevel) {
               newLevel += 1;
               newXp -= xpForNextLevel;
               leveledUp = true;
+              xpForNextLevel = Math.floor(100 * Math.pow(1.25, newLevel - 1));
           }
 
-          // 5. Update profil
+          // 4. Update profil
           const updates: Partial<UserProfile> = {
               id: user.id,
               current_streak: newStreak,
-              longest_streak: Math.max(profile.longest_streak || 0, newStreak),
+              longest_streak: Math.max(currentProfile.longest_streak || 0, newStreak),
               last_completed_date: todayStr,
               xp: newXp,
               level: newLevel
@@ -146,17 +120,15 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
           if (updateError) throw updateError;
           
           // Feedback Sukses
-          let successMsg = "";
-          if (isSameDay) {
-             successMsg = `Data diperbarui! (+${xpGained} XP tambahan).`;
-          } else {
-             successMsg = `Checklist Harian Selesai! Streak: ${newStreak} Hari. (+${xpGained} XP).`;
-          }
-
+          let successMsg = `Checklist Harian Selesai! Streak: ${newStreak} Hari. (+${xpGained} XP).`;
+          
           if (leveledUp) {
               successMsg += `\n🎉 SELAMAT! Anda naik ke Level ${newLevel}!`;
           }
           alert(successMsg);
+
+          // Refresh profil lokal setelah berhasil
+          await fetchProfile();
           
       } catch (err: any) {
           console.error("Gagal update streak:", err.message);
@@ -168,7 +140,44 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   // --- CRUD OPERATIONS ---
 
-  // 1. Fetch Tasks (Read) & Seed Default
+  // 1. Fetch Profile (Read)
+  const fetchProfile = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setProfile(data);
+        setAlreadyClaimedToday(data.last_completed_date === todayStr);
+      } else {
+        // Buat profil default jika belum ada
+         const defaultProfile: UserProfile = {
+            id: user.id,
+            username: user.user_metadata?.username || 'Peternak',
+            avatar_id: 'cow-1',
+            notification_enabled: false,
+            notification_time: '08:00',
+            level: 1,
+            xp: 0,
+            current_streak: 0,
+            longest_streak: 0,
+            last_completed_date: null,
+        };
+        setProfile(defaultProfile);
+        setAlreadyClaimedToday(false);
+      }
+    } catch (err) {
+       console.error("Gagal memuat profil di checklist", err);
+    }
+  }, [user, todayStr]);
+
+  // 2. Fetch Tasks (Read) & Seed Default
   const fetchTasks = useCallback(async () => {
     if (!isLoggedIn || !user) return;
     
@@ -201,14 +210,13 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
     }
   }, [isLoggedIn, user]);
 
-  // 2. Fetch Daily Logs (Read History)
+  // 3. Fetch Daily Logs (Read History)
   const fetchDailyLogs = useCallback(async () => {
     if (!isLoggedIn || !user) {
       setLoading(false);
       return;
     }
 
-    setLoading(true);
     setError(null);
     try {
       const d = new Date();
@@ -266,11 +274,14 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   // Initial Load
   useEffect(() => {
     const init = async () => {
+        setLoading(true);
+        await fetchProfile();
         await fetchTasks();
         await fetchDailyLogs();
+        setLoading(false);
     };
     init();
-  }, [fetchTasks, fetchDailyLogs]);
+  }, [fetchProfile, fetchTasks, fetchDailyLogs]);
 
   // --- CLEANUP LOGIC ---
   useEffect(() => {
@@ -328,7 +339,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   };
 
 
-  // 3. Create / Update Task
+  // Create / Update Task
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -363,7 +374,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
     }
   };
 
-  // 4. Delete Task
+  // Delete Task
   const handleDeleteTask = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus tugas ini? Riwayat checklist untuk tugas ini tetap ada, tapi tugas akan hilang dari daftar hari ini.")) return;
     
@@ -411,9 +422,6 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   const handleToggle = async (itemId: number) => {
     if (!isLoggedIn || !user) return;
 
-    // const wasJustCompleted = !completedItems.has(itemId);
-    // const firstCompletionToday = completedItems.size === 0 && wasJustCompleted;
-
     const newCompletedItems = new Set<number>(completedItems);
     if (newCompletedItems.has(itemId)) {
       newCompletedItems.delete(itemId);
@@ -429,8 +437,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
           : log
       )
     );
-
-    // Kita hanya simpan log checkboknya saja, tapi TIDAK update streak/XP
+    
     await saveChecklistLog(newCompletedItems);
   };
 
@@ -561,11 +568,12 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                  <div className="mt-4 pt-3 border-t border-gray-100">
                     <button
                         onClick={handleClaimXP}
-                        disabled={loading || claiming || tasks.length === 0}
+                        disabled={loading || claiming || tasks.length === 0 || alreadyClaimedToday || completedItems.size === 0}
                         className={`w-full py-3 px-4 rounded-lg font-bold text-white shadow-md transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2
-                            ${completedItems.size > 0 
-                                ? 'bg-amber-500 hover:bg-amber-600' 
-                                : 'bg-gray-300 cursor-not-allowed text-gray-500'}`}
+                            ${alreadyClaimedToday 
+                                ? 'bg-green-700 cursor-not-allowed'
+                                : (completedItems.size > 0 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-300 cursor-not-allowed text-gray-500')
+                            }`}
                     >
                         {claiming ? (
                              <>
@@ -575,17 +583,24 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                 </svg>
                                 <span>Menghitung Progres...</span>
                              </>
+                        ) : alreadyClaimedToday ? (
+                             <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>XP Sudah Diklaim Hari Ini</span>
+                             </>
                         ) : (
                              <>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
-                                <span>Update Tugas & Klaim XP</span>
+                                <span>Selesaikan & Klaim XP</span>
                              </>
                         )}
                     </button>
-                    {completedItems.size === 0 && (
-                        <p className="text-xs text-center text-gray-500 mt-2">Selesaikan tugas untuk mengaktifkan tombol ini.</p>
+                    {!alreadyClaimedToday && completedItems.size === 0 && (
+                        <p className="text-xs text-center text-gray-500 mt-2">Selesaikan minimal 1 tugas untuk klaim XP.</p>
                     )}
                  </div>
             </div>

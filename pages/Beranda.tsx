@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Page } from '../App';
 import { CowIcon } from '../components/icons/CowIcon';
-import { GreenhouseCowIcon } from '../components/icons/GreenhouseCowIcon'; // Import GreenhouseCowIcon
 import { MethaneIcon } from '../components/icons/MethaneIcon';
 
 const StepCard: React.FC<{
@@ -34,7 +34,7 @@ const Beranda: React.FC<{ onNavigate: (main: Page['main'], sub?: string) => void
       </div>
       <div className="text-center bg-white p-10 rounded-2xl shadow-lg border border-gray-200">
         <div className="flex justify-center mb-4">
-          <GreenhouseCowIcon className="w-16 h-16 text-emerald-500" /> {/* Menggunakan GreenhouseCowIcon */}
+          <img src="./proto logo.png" alt="GG-ed Logo" className="w-24 h-24 object-contain" />
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold text-emerald-700 mb-4">
           GG-ed: Greenhouse Gas Education

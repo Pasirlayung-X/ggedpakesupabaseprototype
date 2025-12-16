@@ -89,7 +89,7 @@ const App: React.FC = () => {
 
     if (main === 'beranda') return <Beranda onNavigate={handleNavigate} />;
     if (main === 'checklist') return <ChecklistPage user={user} isLoggedIn={isLoggedIn} />;
-    if (main === 'profile') return <ProfilePage user={user} onProfileUpdate={handleProfileUpdate} />;
+    if (main === 'profile') return <ProfilePage user={user} onProfileUpdate={handleProfileUpdate} onNavigate={handleNavigate} />;
     if (main === 'tentang') return <TentangGGEdu />;
     
     if (main === 'grk') return <SemuaGRK onFinish={() => handleNavigate('beranda')} />;
