@@ -1,3 +1,5 @@
+// FIX: Add a triple-slash directive to include Vite client types, which makes TypeScript aware of `import.meta.env` and resolves compilation errors.
+/// <reference types="vite/client" />
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -13,10 +15,9 @@ const SUPABASE_ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M
 
 // Deteksi environment variable dengan aman (mendukung Vite dan standard process.env)
 const getEnv = (key: string) => {
-  // FIX: Cast `import.meta` to `any` to resolve TypeScript error about missing 'env' property.
-  // This is a workaround because the Vite client types are not available in this context.
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    return (import.meta as any).env[key] || (import.meta as any).env[`VITE_${key}`];
+  // Dengan "vite/client" di tsconfig.json, TypeScript sekarang mengenali import.meta.env
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env[key] || import.meta.env[`VITE_${key}`];
   }
   if (typeof process !== 'undefined' && process.env) {
     return process.env[key];
