@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import SolusiPeternak from './SolusiPeternak';
 import SolusiPakan from './SolusiPakan';
 import SolusiKotoran from './SolusiKotoran';
+import SolusiBiogas from './SolusiBiogas'; // Import halaman baru
 import SolusiKesehatan from './SolusiKesehatan';
 import SolusiSesama from './SolusiSesama';
 import SolusiDukung from './SolusiDukung';
@@ -20,6 +22,7 @@ const SemuaSolusi: React.FC<SemuaSolusiProps> = ({ onFinish }) => {
     { id: 'peternak', component: SolusiPeternak },
     { id: 'pakan', component: SolusiPakan },
     { id: 'kotoran', component: SolusiKotoran },
+    { id: 'biogas', component: SolusiBiogas }, // Tambahkan halaman baru di sini
     { id: 'kesehatan', component: SolusiKesehatan },
     { id: 'sesama', component: SolusiSesama },
     { id: 'dukung', component: SolusiDukung },
