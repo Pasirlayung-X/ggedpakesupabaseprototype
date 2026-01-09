@@ -43,7 +43,8 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({ userId }) => 
              if (Notification.permission === 'granted') {
                  new Notification("Waktunya Checklist Ternak!", {
                      body: "Jangan lupa isi checklist harian Anda untuk mitigasi gas metana.",
-                     icon: "/proto logo.png" // Fallback icon jika tidak ada
+                     // PENTING: Path ini memerlukan file `logo.svg` fisik di direktori publik (root) Anda.
+                     icon: "/logo.svg" 
                  });
              }
           }

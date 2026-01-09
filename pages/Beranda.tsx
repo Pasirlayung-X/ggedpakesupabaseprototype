@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Page } from '../App';
+import { LogoIcon } from '../components/icons/LogoIcon';
 
 const StepCard: React.FC<{
   icon: React.ReactNode;
@@ -31,8 +32,8 @@ const Beranda: React.FC<{ onNavigate: (main: Page['main'], sub?: string) => void
         <h2 className="text-2xl font-semibold text-emerald-800">Halo, Peternak Cerdas!</h2>
       </div>
       <div className="text-center bg-white p-10 rounded-2xl shadow-lg border border-gray-200">
-        <div className="flex justify-center mb-4">
-          <img src="./proto logo.png" alt="GG-ed Logo" className="w-24 h-24 object-contain" />
+        <div className="flex justify-center mb-6">
+          <LogoIcon className="w-28 h-auto text-emerald-700" />
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold text-emerald-700 mb-4">
           GG-ed: Greenhouse Gas Education

@@ -1,9 +1,10 @@
 
-import React, 'react';
+import React from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import type { Page } from '../App';
 import { renderAvatar } from './AvatarSelector';
+import { LogoIcon } from './icons/LogoIcon';
 
 interface HeaderProps {
   user: User | null;
@@ -74,11 +75,7 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center cursor-pointer" onClick={() => onNavigate('beranda')}>
-            <img 
-              src="./proto logo.png" 
-              alt="GG-ed Logo" 
-              className="h-10 md:h-12 w-auto object-contain"
-            />
+            <LogoIcon className="h-9 w-auto text-emerald-700" />
           </div>
           
           <nav className="hidden lg:flex items-center space-x-1">
