@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { MethaneIcon } from '../../components/icons/MethaneIcon';
 import Accordion from '../../components/Accordion'; // Import Accordion
 
 interface ContentPageProps {
@@ -12,8 +12,8 @@ const SolusiKotoran: React.FC<ContentPageProps> = ({ onAdvance }) => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 text-center">Pengelolaan Kotoran Ternak</h2>
             <Accordion title="Ubah Limbah Menjadi Berkah: Pengelolaan Kotoran yang Efektif" defaultOpen={true}>
                 <div className="flex items-center mb-6">
-                    <div className="p-4 bg-emerald-100 rounded-full mr-5">
-                        <MethaneIcon className="h-10 w-10 text-emerald-600" />
+                    <div className="p-4 bg-emerald-100 rounded-full mr-5 flex items-center justify-center h-20 w-20">
+                        <span className="text-5xl" role="img" aria-label="gas emoji">💨</span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800">Tujuan: Mencegah pelepasan metana dari kotoran.</h3>
                 </div>

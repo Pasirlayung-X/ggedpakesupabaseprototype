@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import type { Page } from '../App';
@@ -35,16 +35,16 @@ const NavItem: React.FC<{
 };
 
 const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigate, onLogout, profileVersion }) => {
-  const [displayName, setDisplayName] = useState('');
-  const [avatarId, setAvatarId] = useState('cow-1');
+  const [displayName, setDisplayName] = React.useState('');
+  const [avatarId, setAvatarId] = React.useState('cow-1');
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchProfileData = async () => {
         if (!user) return;
         
         try {
             // Coba ambil dari tabel profiles dulu
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('profiles')
                 .select('username, avatar_id')
                 .eq('id', user.id)
@@ -115,12 +115,10 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
                  
                  <button
                    onClick={onLogout}
-                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors duration-200"
+                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors duration-200 flex items-center justify-center"
                    title="Keluar"
                  >
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-6 0v-1m6 0H9" />
-                   </svg>
+                   <span className="text-xl" role="img" aria-label="logout">🚪</span>
                  </button>
                </div>
              ) : (

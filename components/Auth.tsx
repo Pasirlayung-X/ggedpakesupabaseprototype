@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
-import { CowIcon } from './icons/CowIcon';
 
 interface AuthComponentProps {
   onAuthSuccess: (username?: string) => void;
@@ -100,7 +99,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
 
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <CowIcon className="w-16 h-16 text-green-600" />
+            <span className="text-6xl" role="img" aria-label="cow emoji">🐄</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             {isLogin ? 'Selamat Datang Kembali' : 'Buat Akun Baru'}

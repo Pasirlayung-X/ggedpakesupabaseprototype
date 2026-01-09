@@ -225,14 +225,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                 <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg flex items-center justify-around text-center">
                     <div>
                         <div className="flex items-center justify-center text-orange-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0112 3c1.398 0 2.743.54 3.728 1.506C18.5 6.5 19 9 19 11c1 1 2.657 1.343 2.657 2.657a8 8 0 01-14.314 5z" /></svg>
+                            <span className="text-3xl mr-1">🔥</span>
                             <span className="text-3xl font-bold">{profile.current_streak}</span>
                         </div>
                         <p className="text-xs font-medium text-orange-700">Streak Saat Ini</p>
                     </div>
                      <div>
                         <div className="flex items-center justify-center text-gray-400">
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19h18" /></svg>
+                             <span className="text-2xl mr-1">🏆</span>
                             <span className="text-2xl font-semibold">{profile.longest_streak}</span>
                         </div>
                         <p className="text-xs text-gray-500">Rekor Streak</p>
@@ -257,9 +257,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                     onClick={() => onNavigate('checklist')}
                     className="w-full bg-amber-400 text-gray-900 font-bold py-3 px-4 rounded-lg hover:bg-amber-500 transition-all duration-300 shadow-md transform hover:scale-[1.02] flex items-center justify-center space-x-2"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
+                    <span className="text-xl">📋</span>
                     <span>Buka Checklist Harian</span>
                 </button>
             </div>
@@ -346,9 +344,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                         onClick={handleAdminUpgrade}
                         className="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-purple-700 transition duration-300 shadow-lg flex items-center justify-center space-x-2 border-2 border-purple-400"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-300 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                        <span className="text-yellow-300 animate-pulse text-2xl">⚡️</span>
                         <span>AKTIFKAN MODE SULTAN (ADMIN)</span>
                     </button>
                     <p className="text-center text-xs text-purple-600 mt-2 font-mono">

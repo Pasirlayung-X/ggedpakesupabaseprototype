@@ -484,9 +484,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                     onClick={openAddModal}
                     className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-sm text-sm font-medium"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
+                    <span className="mr-2">➕</span>
                     Tambah Tugas
                 </button>
             )}
@@ -545,18 +543,14 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                     className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                                     title="Edit Tugas"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
+                                    <span className="text-base">✏️</span>
                                 </button>
                                 <button 
                                     onClick={() => handleDeleteTask(item.id)}
                                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
                                     title="Hapus Tugas"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    <span className="text-base">🗑️</span>
                                 </button>
                             </div>
                         </div>
@@ -585,16 +579,12 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                              </>
                         ) : alreadyClaimedToday ? (
                              <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <span>✔️</span>
                                 <span>XP Sudah Diklaim Hari Ini</span>
                              </>
                         ) : (
                              <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
+                                <span>🏅</span>
                                 <span>Selesaikan & Klaim XP</span>
                              </>
                         )}
@@ -697,9 +687,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                         </>
                                     ) : (
                                         <>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 9a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.707.293l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L14.586 5H12a1 1 0 01-1-1zM12 9a1 1 0 011-1h2.586l-1.293-1.293a1 1 0 111.414-1.414l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L15.586 10H13a1 1 0 01-1-1z" clipRule="evenodd" />
-                                            </svg>
+                                            <span className="text-lg">✨</span>
                                             <span className="text-sm font-medium">Tanya Asisten AI: Apakah ini membantu kurangi Metana?</span>
                                         </>
                                     )}
@@ -707,11 +695,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                              ) : (
                                  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 animate-page-enter">
                                      <div className="flex items-start">
-                                         <div className="flex-shrink-0 mt-0.5">
-                                            <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                         </div>
+                                         <div className="flex-shrink-0 mt-0.5 text-2xl">💡</div>
                                          <div className="ml-3">
                                              <h4 className="text-sm font-bold text-indigo-800">Saran Asisten AI:</h4>
                                              <p className="mt-1 text-sm text-indigo-700">{aiFeedback}</p>

@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Page } from '../App';
-import { CowIcon } from '../components/icons/CowIcon';
-import { MethaneIcon } from '../components/icons/MethaneIcon';
 
 const StepCard: React.FC<{
   icon: React.ReactNode;
@@ -12,8 +10,8 @@ const StepCard: React.FC<{
   onClick: () => void;
 }> = ({ icon, title, description, buttonText, onClick }) => (
   <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col text-center h-full border border-transparent hover:border-emerald-300">
-    <div className="p-4 bg-emerald-100 rounded-full mb-4 self-center">
-      {icon}
+    <div className="p-4 bg-emerald-100 rounded-full mb-4 self-center flex items-center justify-center h-20 w-20">
+      <span className="text-4xl">{icon}</span>
     </div>
     <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
     <p className="text-gray-600 mb-4 flex-grow">{description}</p>
@@ -49,23 +47,21 @@ const Beranda: React.FC<{ onNavigate: (main: Page['main'], sub?: string) => void
         <p className="text-gray-600 mb-8">Ikuti alur ini untuk mendapatkan manfaat maksimal dari platform kami.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <StepCard
-            icon={<MethaneIcon className="h-10 w-10 text-emerald-600" />}
+            icon="💨"
             title="1. Pahami Masalahnya"
             description="Pelajari tentang Gas Rumah Kaca (GRK) dan Metana, serta dampaknya terhadap lingkungan dan peternakan Anda."
             buttonText="Mulai Belajar"
             onClick={() => onNavigate('grk')} // Navigasi langsung ke halaman SemuaGRK tanpa sub-path
           />
           <StepCard
-            icon={<CowIcon className="h-10 w-10 text-emerald-600" />}
+            icon="🐄"
             title="2. Temukan Solusinya"
             description="Temukan langkah-langkah praktis dan solusi inovatif yang bisa Anda terapkan langsung di peternakan."
             buttonText="Lihat Solusi"
             onClick={() => onNavigate('solusi')} // Navigasi langsung ke halaman SemuaSolusi tanpa sub-path
           />
           <StepCard
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>}
+            icon="✅"
             title="3. Lacak Progres Anda"
             description="Gunakan checklist harian kami untuk membangun kebiasaan baru dan melihat kemajuan Anda dari waktu ke waktu."
             buttonText="Buka Checklist"

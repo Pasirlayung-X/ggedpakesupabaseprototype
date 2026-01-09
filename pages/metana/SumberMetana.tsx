@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { CowIcon } from '../../components/icons/CowIcon';
 import Accordion from '../../components/Accordion'; // Import Accordion
 
 interface ContentPageProps {
@@ -13,7 +13,7 @@ const SumberMetana: React.FC<ContentPageProps> = ({ onAdvance }) => {
       <Accordion title="Sumber Metana dari Peternakan Sapi" defaultOpen={true}>
         <div className="flex items-center mb-4">
           <div className="p-3 bg-blue-100 rounded-full mr-4">
-            <CowIcon className="h-8 w-8 text-blue-600" />
+            <span className="text-4xl" role="img" aria-label="cow emoji">🐄</span>
           </div>
           <h3 className="text-2xl font-bold text-gray-800">Dari mana metana berasal?</h3>
         </div>

@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { MethaneIcon } from '../../components/icons/MethaneIcon';
 import Accordion from '../../components/Accordion'; // Import Accordion
 
 interface ContentPageProps {
@@ -13,7 +13,7 @@ const DefinisiMetana: React.FC<ContentPageProps> = ({ onAdvance }) => {
       <Accordion title="Apa itu Gas Metana (CH4)?" defaultOpen={true}>
         <div className="flex items-center mb-4">
           <div className="p-3 bg-blue-100 rounded-full mr-4">
-            <MethaneIcon className="h-8 w-8 text-blue-600" />
+            <span className="text-4xl" role="img" aria-label="gas emoji">💨</span>
           </div>
           <h3 className="text-2xl font-bold text-gray-800">Metana (CH4)</h3>
         </div>
