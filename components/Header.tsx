@@ -74,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center cursor-pointer" onClick={() => onNavigate('beranda')}>
-            <img src="/logo.svg" alt="GG-ed Logo" className="h-9 w-auto" />
+            <img src="/sergio.png" alt="Logo" className="h-9 w-auto" />
           </div>
           
           <nav className="hidden lg:flex items-center space-x-1">
