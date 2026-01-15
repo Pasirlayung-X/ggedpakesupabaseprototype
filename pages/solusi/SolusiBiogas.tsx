@@ -26,7 +26,7 @@ const SolusiBiogas: React.FC<ContentPageProps> = ({ onAdvance }) => {
         </div>
       </Accordion>
 
-      <Accordion title="Langkah-Langkah Utama Pembuatan (Penjelasan Teks)" defaultOpen={true}>
+      <Accordion title="Langkah-Langkah Utama Pembuatan" defaultOpen={true}>
         <div className="text-lg text-gray-700 space-y-4">
             <p>Video di atas memberikan panduan lengkap. Berikut adalah rangkuman langkah-langkah kunci yang perlu diperhatikan:</p>
             <ol className="list-decimal list-inside space-y-3 pl-2 marker:text-emerald-600 marker:font-bold">
