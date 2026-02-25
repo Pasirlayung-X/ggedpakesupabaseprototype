@@ -142,7 +142,8 @@ const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose, onOpen, initialPrompt,
             body: JSON.stringify({
                 model: "nvidia/nemotron-3-nano-30b-a3b:free",
                 messages: [systemPrompt, ...mappedMessages],
-                stream: true
+                stream: true,
+                user: userAvatarId // Add user ID to the request
             })
         });
 
