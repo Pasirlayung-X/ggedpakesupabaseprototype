@@ -43,7 +43,6 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
   const [postLoginAction, setPostLoginAction] = useState<PostLoginAction>(null);
-  const [userAvatarId, setUserAvatarId] = useState('cow-1');
 
   const fetchUserAvatar = useCallback(async (userId: string) => {
     try {
@@ -52,14 +51,9 @@ const App: React.FC = () => {
             .select('avatar_id')
             .eq('id', userId)
             .single();
-        if (data?.avatar_id) {
-            setUserAvatarId(data.avatar_id);
-        } else {
-            setUserAvatarId('cow-1'); // Default
-        }
+        // This function can be used elsewhere if needed, but the direct avatarId is no longer in this component's state.
     } catch (e) {
         console.error("Error fetching user avatar", e);
-        setUserAvatarId('cow-1'); // Default on error
     }
   }, []);
 
@@ -223,7 +217,7 @@ const App: React.FC = () => {
         onOpen={handleOpenChat}
         initialPrompt={initialPrompt}
         isLoggedIn={isLoggedIn}
-        userAvatarId={userAvatarId}
+        userAvatarId={session?.user?.id ?? ''}
       />
     </div>
   );

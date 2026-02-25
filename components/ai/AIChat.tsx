@@ -86,7 +86,7 @@ const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose, onOpen, initialPrompt,
     setMessages(updatedMessages);
 
     try {
-        const apiKey = "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";
+        const apiKey = "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";
         
         // Filter out the initial greeting from the model to create the conversation history for the API call.
         const history = updatedMessages.slice(1);
@@ -131,6 +131,16 @@ const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose, onOpen, initialPrompt,
             content: "Anda adalah asisten yang selalu merespons dalam Bahasa Indonesia."
         };
 
+        const requestBody: any = {
+            model: "nvidia/nemotron-3-nano-30b-a3b:free",
+            messages: [systemPrompt, ...mappedMessages],
+            stream: true
+        };
+
+        if (isLoggedIn && userAvatarId) {
+            requestBody.user = userAvatarId;
+        }
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -139,12 +149,7 @@ const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose, onOpen, initialPrompt,
                 "HTTP-Referer": window.location.origin,
                 "X-Title": "GeGed App",
             },
-            body: JSON.stringify({
-                model: "nvidia/nemotron-3-nano-30b-a3b:free",
-                messages: [systemPrompt, ...mappedMessages],
-                stream: true,
-                user: userAvatarId // Add user ID to the request
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
