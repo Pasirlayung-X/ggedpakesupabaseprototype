@@ -67,7 +67,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
             }, 500);
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(e.message || 'Terjadi kesalahan saat autentikasi.');
     } finally {
       setLoading(false);

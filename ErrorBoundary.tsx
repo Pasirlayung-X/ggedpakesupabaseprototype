@@ -36,19 +36,25 @@ class ErrorBoundary extends Component<Props, State> {
         return (
           <div className="flex items-center justify-center min-h-screen bg-orange-50 text-orange-900 p-4">
             <div className="max-w-2xl w-full p-8 bg-white rounded-2xl shadow-lg border-2 border-orange-200 text-center">
-              <h1 className="text-2xl font-bold mb-4 text-orange-700">Kesalahan Konfigurasi Aplikasi</h1>
-              <p className="mb-4 text-gray-700">
-                Aplikasi ini belum terhubung dengan Supabase. Anda perlu memasukkan kredensial Supabase Anda untuk melanjutkan.
+              <h1 className="text-2xl font-bold mb-4 text-orange-700">Langkah Terakhir: Hubungkan Aplikasi ke Supabase Anda</h1>
+              <p className="mb-6 text-gray-700">
+                Aplikasi ini hampir siap! Anda hanya perlu menghubungkannya ke database Supabase Anda untuk menyimpan semua data pengguna dan progres.
               </p>
               <div className="bg-orange-100 p-4 rounded-lg text-left">
-                <p className="font-semibold">Langkah Selanjutnya:</p>
-                <ol className="list-decimal list-inside mt-2 space-y-1 text-sm text-gray-600">
-                  <li>Buka file <code className="bg-orange-200 text-orange-800 p-1 rounded font-mono text-xs">services/supabase.ts</code> di editor Anda.</li>
-                  <li>Isi nilai untuk variabel <code className="bg-orange-200 text-orange-800 p-1 rounded font-mono text-xs">SUPABASE_URL</code> dan <code className="bg-orange-200 text-orange-800 p-1 rounded font-mono text-xs">SUPABASE_ANON_KEY</code> dengan kredensial dari dasbor proyek Supabase Anda (Settings &gt; API).</li>
+                <p className="font-semibold text-lg">Apa yang harus dilakukan:</p>
+                <ol className="list-decimal list-inside mt-2 space-y-2 text-gray-600">
+                  <li>Buka dasbor proyek Supabase Anda.</li>
+                  <li>Pergi ke <strong>Settings</strong> (ikon gerigi) &gt; <strong>API</strong>.</li>
+                  <li>
+                    Di sana Anda akan menemukan <strong>Project URL</strong> dan <strong>Project API Keys</strong> (gunakan kunci <code className="bg-orange-200 text-orange-800 p-1 rounded font-mono text-xs">anon</code> <code className="bg-orange-200 text-orange-800 p-1 rounded font-mono text-xs">public</code>).
+                  </li>
+                  <li>
+                    Salin kedua nilai tersebut dan berikan kepada saya di chat.
+                  </li>
                 </ol>
               </div>
                <p className="mt-6 text-sm text-gray-500">
-                Setelah menyimpan perubahan, segarkan kembali halaman ini.
+                Setelah saya memasukkan kredensial Anda, aplikasi akan berfungsi sepenuhnya.
               </p>
             </div>
           </div>

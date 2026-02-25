@@ -22,3 +22,13 @@ export interface UserProfile {
   longest_streak: number;
   last_completed_date: string | null;
 }
+
+// AI Chat Types
+export interface PartText { text: string; }
+export interface PartInlineData { inlineData: { data: string; mimeType: string; }; }
+export type Part = PartText | PartInlineData;
+
+export interface Message {
+  role: 'user' | 'assistant';
+  parts: Part[];
+}

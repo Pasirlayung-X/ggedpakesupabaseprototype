@@ -34,7 +34,7 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({ userId }) => 
     const [hour, minute] = time.split(':').map(Number);
     const now = new Date();
     
-    let notificationTime = new Date();
+    const notificationTime = new Date();
     notificationTime.setHours(hour, minute, 0, 0);
 
     // Jika waktu notifikasi sudah lewat hari ini, set untuk besok

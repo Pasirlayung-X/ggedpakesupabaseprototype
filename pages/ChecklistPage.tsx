@@ -4,7 +4,6 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import type { ChecklistItem, DailyLog, UserProfile } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { GoogleGenAI } from "@google/genai";
 
 // Data default untuk inisialisasi user baru
 const DEFAULT_TASKS = [
@@ -40,10 +39,6 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   const [formDesc, setFormDesc] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // State AI
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
-
   // Menggunakan tanggal lokal dalam format YYYY-MM-DD
   const todayStr = useMemo(() => {
     const now = new Date();
@@ -72,7 +67,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       
       try {
           // Salin profil saat ini untuk dimodifikasi
-          let currentProfile = { ...profile };
+          const currentProfile = { ...profile };
 
           const lastDate = currentProfile.last_completed_date;
           const yesterday = getYesterdayStr(todayStr);
@@ -130,8 +125,9 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
           // Refresh profil lokal setelah berhasil
           await fetchProfile();
           
-      } catch (err: any) {
-          console.error("Gagal update streak:", err.message);
+      } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error("Gagal update streak:", message);
           alert("Terjadi kesalahan saat mengklaim XP. Silakan coba lagi.");
       } finally {
           setClaiming(false);
@@ -203,7 +199,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       } else {
         setTasks(data);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching tasks:", err);
       // Fallback to static if DB fails just to show something
       setTasks(DEFAULT_TASKS.map((t, i) => ({ ...t, id: i + 1 }))); 
@@ -234,7 +230,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
       const logsMap = new Map();
       if (data) {
-        data.forEach((log: any) => {
+        data.forEach((log: DailyLog) => {
           logsMap.set(log.log_date, log.completed_items || []);
         });
       }
@@ -263,7 +259,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       setDailyLogs(processedLogs);
       setCompletedItems(tempCompletedItems);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching logs:", err);
       setError("Gagal memuat data checklist.");
     } finally {
@@ -302,43 +298,6 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
     }
   }, [tasks, completedItems, todayStr]);
 
-  // --- AI ADVISOR LOGIC ---
-  const analyzeTaskWithAI = async () => {
-    if (!formTask.trim()) return;
-    
-    setIsAnalyzing(true);
-    setAiFeedback(null);
-
-    try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `
-          Bertindaklah sebagai ahli peternakan sapi dan mitigasi gas rumah kaca.
-          Analisis tugas berikut yang ingin ditambahkan peternak ke checklist harian mereka:
-          
-          Nama Tugas: ${formTask}
-          Deskripsi: ${formDesc}
-          
-          Apakah tugas ini membantu mengurangi emisi metana (CH4) atau gas rumah kaca lainnya dari peternakan sapi?
-          
-          Berikan jawaban singkat (maksimal 3 kalimat) dengan nada yang menyemangati. 
-          Jika tugas ini bagus, katakan kenapa. Jika tidak berhubungan langsung, berikan tips singkat agar lebih ramah lingkungan.
-        `;
-
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        
-        setAiFeedback(response.text);
-    } catch (err: any) {
-        console.error("AI Error:", err);
-        setAiFeedback("Maaf, Asisten AI sedang istirahat sebentar. Coba lagi nanti.");
-    } finally {
-        setIsAnalyzing(false);
-    }
-  };
-
-
   // Create / Update Task
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -367,8 +326,9 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
         if (data) setTasks(prev => [...prev, ...data]);
       }
       closeModal();
-    } catch (err: any) {
-      alert("Gagal menyimpan tugas: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      alert("Gagal menyimpan tugas: " + message);
     } finally {
       setIsSaving(false);
     }
@@ -393,8 +353,9 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
             setCompletedItems(newSet);
             await saveChecklistLog(newSet);
         }
-    } catch (err: any) {
-        alert("Gagal menghapus: " + err.message);
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        alert("Gagal menghapus: " + message);
     }
   };
 
@@ -447,7 +408,6 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       setEditingTask(null);
       setFormTask('');
       setFormDesc('');
-      setAiFeedback(null);
       setShowModal(true);
   };
 
@@ -455,14 +415,12 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       setEditingTask(item);
       setFormTask(item.task);
       setFormDesc(item.description);
-      setAiFeedback(null);
       setShowModal(true);
   };
 
   const closeModal = () => {
       setShowModal(false);
       setEditingTask(null);
-      setAiFeedback(null);
   };
 
   const progressPercentage = tasks.length > 0 ? (completedItems.size / tasks.length) * 100 : 0;
@@ -663,56 +621,6 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                 onChange={(e) => setFormDesc(e.target.value)}
                             />
                         </div>
-
-                         {/* AI Consultant Section */}
-                         <div className="pt-2">
-                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asisten Cerdas GG-ed</span>
-                             </div>
-                             
-                             {!aiFeedback ? (
-                                 <button
-                                    type="button"
-                                    onClick={analyzeTaskWithAI}
-                                    disabled={!formTask || isAnalyzing}
-                                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                 >
-                                    {isAnalyzing ? (
-                                        <>
-                                            <svg className="animate-spin h-5 w-5 text-indigo-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            <span className="text-sm font-medium">Sedang Menganalisa...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-lg">✨</span>
-                                            <span className="text-sm font-medium">Tanya Asisten AI: Apakah ini membantu kurangi Metana?</span>
-                                        </>
-                                    )}
-                                 </button>
-                             ) : (
-                                 <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 animate-page-enter">
-                                     <div className="flex items-start">
-                                         <div className="flex-shrink-0 mt-0.5 text-2xl">💡</div>
-                                         <div className="ml-3">
-                                             <h4 className="text-sm font-bold text-indigo-800">Saran Asisten AI:</h4>
-                                             <p className="mt-1 text-sm text-indigo-700">{aiFeedback}</p>
-                                         </div>
-                                         <button 
-                                            type="button" 
-                                            onClick={() => setAiFeedback(null)} 
-                                            className="ml-auto flex-shrink-0 text-indigo-400 hover:text-indigo-600"
-                                         >
-                                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                             </svg>
-                                         </button>
-                                     </div>
-                                 </div>
-                             )}
-                         </div>
 
                         <div className="pt-4 flex space-x-3 border-t border-gray-100 mt-2">
                             <button 

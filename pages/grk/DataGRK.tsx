@@ -26,7 +26,7 @@ const DataGRK: React.FC<ContentPageProps> = () => {
         borderRadius: '0.5rem'
     };
     const tooltipItemStyle = { color: '#111827' };
-    const axisTickStyle = { fill: '#4b5563', fontSize: 12 };
+    
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
@@ -54,7 +54,7 @@ const DataGRK: React.FC<ContentPageProps> = () => {
                                 fill="#8884d8"
                                 dataKey="value"
                                 nameKey="name"
-                                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                             >
                                 {data.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

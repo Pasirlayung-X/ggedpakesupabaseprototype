@@ -1,10 +1,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import AnimatedCounter from '../components/AnimatedCounter';
 import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import { AvatarSelector, renderAvatar } from '../components/AvatarSelector';
 import type { UserProfile } from '../types';
 import { Page } from '../App';
+import LevelUpModal from '../components/LevelUpModal';
+import SultanBadge from '../components/SultanBadge';
+import ShareButton from '../components/ShareButton';
 
 interface ProfilePageProps {
   user: User | null;
@@ -37,6 +42,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifTime, setNotifTime] = useState('08:00');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
 
   const [lastLevel, setLastLevel] = useState<number | null>(null);
 
@@ -82,7 +88,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
         setNotifEnabled(defaultProfile.notification_enabled);
         setNotifTime(defaultProfile.notification_time);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching profile:', error);
       setMessage({ type: 'error', text: 'Gagal memuat profil.' });
     } finally {
@@ -100,9 +106,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
   // Efek untuk menampilkan pesan level up
   useEffect(() => {
       if (profile && lastLevel !== null && profile.level > lastLevel) {
-          setMessage({ type: 'success', text: `Selamat! Anda telah mencapai Level ${profile.level} dan membuka hadiah baru!`});
-          const timer = setTimeout(() => setMessage(null), 5000);
-          return () => clearTimeout(timer);
+          setShowLevelUpModal(true);
       }
   }, [profile, lastLevel]);
 
@@ -150,7 +154,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
         await fetchProfile(); // Refresh data lokal
         onProfileUpdate(); // Refresh header
         alert("Berhasil! Anda sekarang adalah Legenda Hidup.");
-    } catch (err: any) {
+    } catch (err: unknown) {
         alert("Gagal upgrade: " + err.message);
     } finally {
         setSaving(false);
@@ -181,9 +185,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
       onProfileUpdate();
       // Refresh profile local state to match saved data
       await fetchProfile();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error('Error saving profile:', error);
-      setMessage({ type: 'error', text: 'Gagal menyimpan profil: ' + error.message });
+      setMessage({ type: 'error', text: 'Gagal menyimpan profil: ' + message });
     } finally {
       setSaving(false);
     }
@@ -198,6 +203,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 animate-page-enter">
+      {showLevelUpModal && profile && (
+        <LevelUpModal 
+          newLevel={profile.level} 
+          onClose={() => setShowLevelUpModal(false)} 
+        />
+      )}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Profil & Progres Saya</h1>
         <p className="text-gray-600">Atur profil, lacak pencapaian, dan buka hadiah baru!</p>
@@ -214,7 +225,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
         
         <div className="p-8 pt-16">
             <div className="text-center mb-6">
-                 <h2 className="text-2xl font-bold text-gray-800">{username || 'Peternak Cerdas'}</h2>
+                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center">{username || 'Peternak Cerdas'} {username.toLowerCase() === 'dyas ganteng' && <SultanBadge />}</h2>
                  <p className={`text-sm font-semibold ${currentTier.color}`}>{currentTier.name} (Level {profile.level})</p>
                  <p className="text-xs text-gray-500 italic mt-1">"{currentTier.desc}"</p>
             </div>
@@ -226,14 +237,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                     <div>
                         <div className="flex items-center justify-center text-orange-500">
                             <span className="text-3xl mr-1">🔥</span>
-                            <span className="text-3xl font-bold">{profile.current_streak}</span>
+                            <AnimatedCounter value={profile.current_streak} className="text-3xl font-bold" />
                         </div>
                         <p className="text-xs font-medium text-orange-700">Streak Saat Ini</p>
                     </div>
                      <div>
                         <div className="flex items-center justify-center text-gray-400">
                              <span className="text-2xl mr-1">🏆</span>
-                            <span className="text-2xl font-semibold">{profile.longest_streak}</span>
+                            <AnimatedCounter value={profile.longest_streak} className="text-2xl font-semibold" />
                         </div>
                         <p className="text-xs text-gray-500">Rekor Streak</p>
                     </div>
@@ -245,14 +256,19 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                         <p className="text-xs font-semibold text-indigo-600">{profile.xp} / {xpForNextLevel} XP</p>
                     </div>
                     <div className="w-full bg-indigo-200 rounded-full h-3">
-                        <div className="bg-indigo-500 h-3 rounded-full transition-all duration-500" style={{ width: `${xpProgress}%` }}></div>
+                        <motion.div 
+                          className="bg-indigo-500 h-3 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${xpProgress}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                        />
                     </div>
                     <p className="text-xs text-indigo-500 mt-1 text-center">Dapatkan {xpForNextLevel - profile.xp} XP lagi untuk naik ke Level {profile.level + 1}!</p>
                 </div>
             </div>
             
              {/* Quick Action Button */}
-             <div className="mb-8 px-4">
+             <div className="mb-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                     onClick={() => onNavigate('checklist')}
                     className="w-full bg-amber-400 text-gray-900 font-bold py-3 px-4 rounded-lg hover:bg-amber-500 transition-all duration-300 shadow-md transform hover:scale-[1.02] flex items-center justify-center space-x-2"
@@ -260,6 +276,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                     <span className="text-xl">📋</span>
                     <span>Buka Checklist Harian</span>
                 </button>
+                <ShareButton 
+                  shareText={`Saya baru saja mencapai Level ${profile.level} (${currentTier.name}) di GreenHouse Gas Edu! Ayo bergabung dan selamatkan bumi bersama! 🌍`}
+                  shareUrl={window.location.href}
+                />
             </div>
 
 
@@ -273,7 +293,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
                 <div className="space-y-8">
                     {/* Avatar Selection */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-4">Pilih Avatar (Buka dengan Level)</label>
+                        <div className="flex justify-between items-center mb-4">
+                          <label className="block text-sm font-semibold text-gray-700">Pilih Avatar (Buka dengan Level)</label>
+                          <button onClick={() => onNavigate('avatar_gallery')} className="text-xs bg-emerald-100 text-emerald-700 font-semibold px-3 py-1 rounded-full hover:bg-emerald-200 transition-colors">
+                              Lihat Semua Avatar ➔
+                          </button>
+                        </div>
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                             <AvatarSelector selectedAvatarId={avatarId} onSelect={setAvatarId} userLevel={profile.level} />
                         </div>

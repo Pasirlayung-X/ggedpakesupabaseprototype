@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import type { Page } from '../App';
 import { renderAvatar } from './AvatarSelector';
+import SultanBadge from './SultanBadge';
 
 interface HeaderProps {
   user: User | null;
@@ -37,6 +38,8 @@ const NavItem: React.FC<{
 const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigate, onLogout, profileVersion }) => {
   const [displayName, setDisplayName] = React.useState('');
   const [avatarId, setAvatarId] = React.useState('cow-1');
+  const [xp, setXp] = React.useState(0);
+  const [level, setLevel] = React.useState(1);
 
   React.useEffect(() => {
     const fetchProfileData = async () => {
@@ -46,13 +49,15 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
             // Coba ambil dari tabel profiles dulu
             const { data } = await supabase
                 .from('profiles')
-                .select('username, avatar_id')
+                .select('username, avatar_id, xp, level')
                 .eq('id', user.id)
                 .single();
             
             if (data) {
                 setDisplayName(data.username || user.user_metadata?.username || 'Peternak');
                 setAvatarId(data.avatar_id || 'cow-1');
+                setXp(data.xp || 0);
+                setLevel(data.level || 1);
             } else {
                 setDisplayName(user.user_metadata?.username || 'Peternak');
                 setAvatarId('cow-1');
@@ -85,6 +90,8 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
             <NavItem page="solusi" activePage={activePage} onClick={() => handleMainPageClick('solusi')}>Solusi</NavItem>
             
             <NavItem page="tentang" activePage={activePage} onClick={() => handleMainPageClick('tentang')}>Tentang GG-ed</NavItem>
+            <NavItem page="leaderboard" activePage={activePage} onClick={() => handleMainPageClick('leaderboard')}>Papan Peringkat</NavItem>
+            <NavItem page="studi_kasus" activePage={activePage} onClick={() => handleMainPageClick('studi_kasus')}>Studi Kasus</NavItem>
             
              <button
               onClick={() => onNavigate('checklist')}
@@ -104,9 +111,16 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
                      <div className="bg-emerald-100 rounded-full p-0.5 border border-emerald-200 group-hover:border-emerald-400">
                         {renderAvatar(avatarId, "w-8 h-8")}
                      </div>
-                     <span className="text-gray-700 text-sm font-medium hidden md:block group-hover:text-emerald-700">
-                         {displayName}
-                     </span>
+                     <div className="hidden md:flex flex-col items-start">
+                        <span className="text-gray-700 text-sm font-medium group-hover:text-emerald-700 flex items-center">
+                            {displayName}
+                            {displayName.toLowerCase() === 'dyas ganteng' && <SultanBadge />}
+                        </span>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div className="bg-yellow-400 h-1.5 rounded-full" style={{ width: `${(xp % 100)}%` }}></div>
+                        </div>
+                        <span className="text-xs text-gray-500 mt-0.5">Level {level}</span>
+                     </div>
                  </button>
                  
                  <button
