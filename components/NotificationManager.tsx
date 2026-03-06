@@ -48,8 +48,8 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({ userId }) => 
       timeoutIdRef.current = window.setTimeout(() => {
         new Notification('Waktunya Checklist GG-ed!', {
           body: 'Jangan lupa mengisi checklist harian Anda untuk menjaga streak!',
-          icon: '/sergio.png', // Menggunakan logo baru
-          badge: '/sergio.png', // Ikon untuk taskbar/status bar di beberapa OS
+          icon: '/gg-ed.svg', 
+          badge: '/gg-ed.svg', 
           tag: 'gg-ed-daily-reminder', // Mencegah notifikasi duplikat
         });
         // Jadwalkan ulang untuk besok setelah notifikasi muncul

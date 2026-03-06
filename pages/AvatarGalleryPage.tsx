@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
-
-// Definisikan semua avatar dan level yang dibutuhkan
-const allAvatars = [
-  { id: 'cow-1', name: 'Sapi Ceria', src: '/avatars/cow-1.png', levelRequired: 1 },
-  { id: 'cow-2', name: 'Sapi Santai', src: '/avatars/cow-2.png', levelRequired: 1 },
-  { id: 'chicken-1', name: 'Ayam Jago', src: '/avatars/chicken-1.png', levelRequired: 3 },
-  { id: 'pig-1', name: 'Babi Bahagia', src: '/avatars/pig-1.png', levelRequired: 5 },
-  { id: 'sheep-1', name: 'Domba Keren', src: '/avatars/sheep-1.png', levelRequired: 8 },
-  { id: 'horse-1', name: 'Kuda Gagah', src: '/avatars/horse-1.png', levelRequired: 12 },
-  { id: 'methane', name: 'Gas Metana', src: '/avatars/methane.png', levelRequired: 15, isSpecial: true },
-  { id: 'sultan', name: 'Sultan', src: '/avatars/sultan.png', levelRequired: 99, isSpecial: true },
-];
+import { avatarData } from '../components/AvatarSelector';
 
 interface AvatarGalleryPageProps {
   user: User;
@@ -58,28 +47,28 @@ const AvatarGalleryPage: React.FC<AvatarGalleryPageProps> = ({ user, onNavigate 
       {loading ? (
         <div className="text-center">Memuat...</div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6">
-          {allAvatars.map((avatar) => {
-            const isUnlocked = userLevel >= avatar.levelRequired;
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {avatarData.map((avatar) => {
+            const isUnlocked = userLevel >= avatar.unlockLevel;
             return (
               <div key={avatar.id} className="text-center">
-                <div className={`relative p-2 rounded-full border-4 ${isUnlocked ? 'border-emerald-400' : 'border-gray-200'} ${avatar.isSpecial ? 'bg-purple-200' : 'bg-gray-100'}`}>
-                  <img 
-                    src={avatar.src} 
-                    alt={avatar.name} 
-                    className={`w-24 h-24 rounded-full transition-all duration-300 ${!isUnlocked ? 'filter grayscale opacity-50' : ''}`}
-                  />
+                <div className={`relative p-2 rounded-full border-4 transition-all duration-300 ${isUnlocked ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 bg-gray-100'}`}>
+                  <div className={`w-24 h-24 mx-auto ${!isUnlocked ? 'filter grayscale opacity-50' : ''}`}>
+                    {avatar.svg}
+                  </div>
                   {!isUnlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                      <span className="text-white text-3xl">🔒</span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
                     </div>
                   )}
                 </div>
-                <p className="mt-2 font-semibold text-gray-700">{avatar.name}</p>
+                <p className="mt-2 font-bold text-gray-800">{avatar.name}</p>
                 {isUnlocked ? (
-                  <p className="text-xs text-emerald-600 font-bold">Terbuka</p>
+                  <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">Terbuka</p>
                 ) : (
-                  <p className="text-xs text-gray-500">Buka di Level {avatar.levelRequired}</p>
+                  <p className="text-xs text-gray-500 font-medium">Buka di Level {avatar.unlockLevel}</p>
                 )}
               </div>
             );

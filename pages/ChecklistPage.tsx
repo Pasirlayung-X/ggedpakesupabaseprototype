@@ -5,13 +5,14 @@ import { supabase } from '../services/supabase';
 import type { ChecklistItem, DailyLog, UserProfile } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-// Data default untuk inisialisasi user baru
+// Data default untuk inisialisasi user baru (Daily Routine)
 const DEFAULT_TASKS = [
-  { task: "Manajemen Pakan", description: "Berikan suplemen pakan yang dapat mengurangi emisi metana." },
-  { task: "Pengelolaan Kotoran", description: "Bersihkan kandang dan kumpulkan kotoran untuk diolah." },
-  { task: "Instalasi Biogas", description: "Olah kotoran menjadi biogas untuk energi terbarukan." },
-  { task: "Pembuatan Kompos", description: "Proses kotoran menjadi kompos untuk mengurangi emisi." },
-  { task: "Kesehatan Ternak", description: "Pastikan ternak sehat untuk efisiensi pencernaan." },
+  { task: "Pemberian Pakan Pagi", description: "Berikan pakan berkualitas pada pukul 07:00." },
+  { task: "Pembersihan Kandang", description: "Bersihkan sisa pakan dan kotoran agar lingkungan sehat." },
+  { task: "Pemeriksaan Air Minum", description: "Pastikan wadah air minum terisi penuh dan bersih." },
+  { task: "Pemantauan Kesehatan", description: "Cek kondisi fisik ternak, pastikan tidak ada yang lesu." },
+  { task: "Pengolahan Limbah", description: "Kumpulkan kotoran harian untuk proses biogas/kompos." },
+  { task: "Pemberian Pakan Sore", description: "Berikan pakan tambahan pada pukul 16:00." },
 ];
 
 interface ChecklistPageProps {
@@ -23,8 +24,10 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   // State Data
   const [tasks, setTasks] = useState<ChecklistItem[]>([]);
   const [completedItems, setCompletedItems] = useState<Set<number>>(new Set());
+  const [claimedItems, setClaimedItems] = useState<Set<number>>(new Set());
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isFetched, setIsFetched] = useState(false); // Flag untuk mencegah overwrite data saat loading
   
   // State UI
   const [loading, setLoading] = useState(true);
@@ -56,35 +59,35 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   // --- LOGIKA STREAK DAN XP (MANUAL TRIGGER) ---
   const handleClaimXP = async () => {
-      if (!user || !profile || alreadyClaimedToday) return;
+      if (!user || !profile) return;
       
-      if (completedItems.size === 0) {
-          alert("Selesaikan setidaknya satu tugas untuk mengklaim XP hari ini!");
+      const newItemsToClaim = Array.from(completedItems).filter(id => !claimedItems.has(id));
+      
+      if (newItemsToClaim.length === 0) {
+          alert("Semua tugas yang dipilih sudah diklaim XP-nya!");
           return;
       }
 
       setClaiming(true);
       
       try {
-          // Salin profil saat ini untuk dimodifikasi
           const currentProfile = { ...profile };
-
           const lastDate = currentProfile.last_completed_date;
           const yesterday = getYesterdayStr(todayStr);
           let newStreak = currentProfile.current_streak || 0;
 
-          // 1. Hitung Streak (Hanya update jika HARI INI BELUM klaim)
-          if (lastDate === yesterday) {
-              newStreak += 1; // Lanjut streak
-          } else if (lastDate !== todayStr) {
-              newStreak = 1; // Streak putus atau baru mulai
+          // 1. Hitung Streak (Hanya bertambah jika ini klaim PERTAMA hari ini)
+          if (lastDate !== todayStr) {
+              if (lastDate === yesterday) {
+                  newStreak += 1;
+              } else {
+                  newStreak = 1;
+              }
           }
 
-          // 2. Hitung XP Baru
-          const xpFromTasks = completedItems.size * 5; // 5 XP per tugas
-          const streakBonus = Math.floor(newStreak / 2); // Bonus setiap 2 hari streak
-          const xpGained = xpFromTasks + streakBonus;
-
+          // 2. Hitung XP Baru (Hanya untuk item yang baru diklaim)
+          const xpGained = newItemsToClaim.length * 10; // 10 XP per tugas baru
+          
           let newXp = (currentProfile.xp || 0) + xpGained;
           let newLevel = currentProfile.level || 1;
           
@@ -99,36 +102,42 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
           }
 
           // 4. Update profil
-          const updates: Partial<UserProfile> = {
-              id: user.id,
-              current_streak: newStreak,
-              longest_streak: Math.max(currentProfile.longest_streak || 0, newStreak),
-              last_completed_date: todayStr,
-              xp: newXp,
-              level: newLevel
-          };
-
           const { error: updateError } = await supabase
               .from('profiles')
-              .upsert(updates);
+              .upsert({
+                  id: user.id,
+                  current_streak: newStreak,
+                  longest_streak: Math.max(currentProfile.longest_streak || 0, newStreak),
+                  last_completed_date: todayStr,
+                  xp: newXp,
+                  level: newLevel
+              });
           
           if (updateError) throw updateError;
           
-          // Feedback Sukses
-          let successMsg = `Checklist Harian Selesai! Streak: ${newStreak} Hari. (+${xpGained} XP).`;
+          // 5. Update log untuk mencatat item yang sudah diklaim
+          const updatedClaimedItems = new Set([...Array.from(claimedItems), ...newItemsToClaim]);
+          const { error: logError } = await supabase
+              .from('daily_checklist_logs')
+              .upsert({
+                  user_id: user.id,
+                  log_date: todayStr,
+                  completed_items: Array.from(completedItems),
+                  claimed_items: Array.from(updatedClaimedItems)
+              }, { onConflict: 'user_id, log_date' });
+
+          if (logError) throw logError;
+
+          setClaimedItems(updatedClaimedItems);
           
-          if (leveledUp) {
-              successMsg += `\n🎉 SELAMAT! Anda naik ke Level ${newLevel}!`;
-          }
+          let successMsg = `Berhasil klaim +${xpGained} XP!`;
+          if (leveledUp) successMsg += `\n🎉 Level Up! Anda sekarang Level ${newLevel}!`;
           alert(successMsg);
 
-          // Refresh profil lokal setelah berhasil
           await fetchProfile();
           
-      } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.error("Gagal update streak:", message);
-          alert("Terjadi kesalahan saat mengklaim XP. Silakan coba lagi.");
+      } catch (err: any) {
+          alert("Gagal klaim XP: " + err.message);
       } finally {
           setClaiming(false);
       }
@@ -229,14 +238,18 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
       if (error) throw error;
 
       const logsMap = new Map();
+      let todayLogData: any = null;
+      
       if (data) {
-        data.forEach((log: DailyLog) => {
+        data.forEach((log: any) => {
           logsMap.set(log.log_date, log.completed_items || []);
+          if (log.log_date === todayStr) todayLogData = log;
         });
       }
 
       const processedLogs: DailyLog[] = [];
       const tempCompletedItems = new Set<number>();
+      const tempClaimedItems = new Set<number>();
 
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -251,13 +264,16 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
           completed_count: items.length
         });
 
-        if (dateStrKey === todayStr) {
-          items.forEach((id: number) => tempCompletedItems.add(id));
+        if (dateStrKey === todayStr && todayLogData) {
+          (todayLogData.completed_items || []).forEach((id: number) => tempCompletedItems.add(id));
+          (todayLogData.claimed_items || []).forEach((id: number) => tempClaimedItems.add(id));
         }
       }
 
       setDailyLogs(processedLogs);
       setCompletedItems(tempCompletedItems);
+      setClaimedItems(tempClaimedItems);
+      setIsFetched(true);
 
     } catch (err: unknown) {
       console.error("Error fetching logs:", err);
@@ -362,7 +378,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
   // --- CHECKLIST LOGIC ---
 
   const saveChecklistLog = async (currentSet: Set<number>) => {
-      if (!user) return;
+      if (!user || !isFetched) return; // Jangan simpan jika data belum beres di-fetch
       const itemsArray = Array.from(currentSet);
       try {
         const { error } = await supabase
@@ -371,6 +387,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
             user_id: user.id,
             log_date: todayStr,
             completed_items: itemsArray,
+            claimed_items: Array.from(claimedItems)
             }, {
             onConflict: 'user_id, log_date'
             });
@@ -382,6 +399,12 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   const handleToggle = async (itemId: number) => {
     if (!isLoggedIn || !user) return;
+    
+    // Cegah uncheck jika sudah diklaim
+    if (claimedItems.has(itemId)) {
+        alert("Tugas ini sudah diklaim XP-nya dan tidak dapat dibatalkan hari ini.");
+        return;
+    }
 
     const newCompletedItems = new Set<number>(completedItems);
     if (newCompletedItems.has(itemId)) {
@@ -425,8 +448,10 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   const progressPercentage = tasks.length > 0 ? (completedItems.size / tasks.length) * 100 : 0;
   const chartColors = { today: '#16A34A', other: '#86EFAC', text: '#6b7280' };
+  const hasNewItemsToClaim = Array.from(completedItems).some(id => !claimedItems.has(id));
+  const allItemsClaimed = completedItems.size > 0 && Array.from(completedItems).every(id => claimedItems.has(id));
 
-  return (
+    return (
     <div className="max-w-4xl mx-auto relative">
         <div className={`bg-white p-6 rounded-xl shadow-lg border border-gray-200 h-full transition-all duration-300 ${!isLoggedIn ? 'blur-sm pointer-events-none' : ''}`}>
         
@@ -454,9 +479,20 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                 {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
                 
                 {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-4 mb-6 relative overflow-hidden">
-                    <div className="bg-emerald-600 h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2" style={{ width: `${progressPercentage}%` }}>
-                       <span className="text-[10px] font-bold text-white">{Math.round(progressPercentage)}%</span>
+                <div className="mb-6">
+                    <div className="flex justify-between items-end mb-1.5">
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Progres Hari Ini</span>
+                        <span className="text-xs font-bold text-emerald-600">{completedItems.size} dari {tasks.length} Tugas Selesai</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-4 relative overflow-hidden shadow-inner">
+                        <div 
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-4 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-2" 
+                            style={{ width: `${progressPercentage}%` }}
+                        >
+                           {progressPercentage > 15 && (
+                               <span className="text-[10px] font-black text-white drop-shadow-sm">{Math.round(progressPercentage)}%</span>
+                           )}
+                        </div>
                     </div>
                 </div>
 
@@ -476,8 +512,8 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                 type="checkbox"
                                 checked={completedItems.has(item.id)}
                                 onChange={() => handleToggle(item.id)}
-                                className="h-5 w-5 rounded border-gray-300 bg-gray-100 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                                disabled={!isLoggedIn || loading}
+                                className={`h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer ${claimedItems.has(item.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={!isLoggedIn || loading || claimedItems.has(item.id)}
                                 />
                             </div>
                             
@@ -486,9 +522,14 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                 if ((e.target as HTMLElement).closest('button')) return;
                                 handleToggle(item.id); 
                             }}>
-                                <span className={`font-medium text-gray-900 transition-all ${completedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
-                                    {item.task}
-                                </span>
+                                <div className="flex items-center space-x-2">
+                                    <span className={`font-medium text-gray-900 transition-all ${completedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
+                                        {item.task}
+                                    </span>
+                                    {claimedItems.has(item.id) && (
+                                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase">Klaim ✓</span>
+                                    )}
+                                </div>
                                 <p className={`text-sm text-gray-500 mt-0.5 ${completedItems.has(item.id) ? 'text-gray-300' : ''}`}>
                                     {item.description}
                                 </p>
@@ -520,11 +561,11 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                  <div className="mt-4 pt-3 border-t border-gray-100">
                     <button
                         onClick={handleClaimXP}
-                        disabled={loading || claiming || tasks.length === 0 || alreadyClaimedToday || completedItems.size === 0}
+                        disabled={loading || claiming || tasks.length === 0 || (!hasNewItemsToClaim && allItemsClaimed) || (completedItems.size === 0 && !allItemsClaimed)}
                         className={`w-full py-3 px-4 rounded-lg font-bold text-white shadow-md transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2
-                            ${alreadyClaimedToday 
+                            ${allItemsClaimed && !hasNewItemsToClaim
                                 ? 'bg-green-700 cursor-not-allowed'
-                                : (completedItems.size > 0 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-300 cursor-not-allowed text-gray-500')
+                                : (hasNewItemsToClaim ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-300 cursor-not-allowed text-gray-500')
                             }`}
                     >
                         {claiming ? (
@@ -535,20 +576,23 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
                                 </svg>
                                 <span>Menghitung Progres...</span>
                              </>
-                        ) : alreadyClaimedToday ? (
+                        ) : (allItemsClaimed && !hasNewItemsToClaim) ? (
                              <>
                                 <span>✔️</span>
-                                <span>XP Sudah Diklaim Hari Ini</span>
+                                <span>Semua XP Sudah Diklaim</span>
                              </>
                         ) : (
                              <>
                                 <span>🏅</span>
-                                <span>Selesaikan & Klaim XP</span>
+                                <span>{hasNewItemsToClaim ? `Klaim XP (${Array.from(completedItems).filter(id => !claimedItems.has(id)).length} Tugas Baru)` : 'Selesaikan Tugas'}</span>
                              </>
                         )}
                     </button>
-                    {!alreadyClaimedToday && completedItems.size === 0 && (
-                        <p className="text-xs text-center text-gray-500 mt-2">Selesaikan minimal 1 tugas untuk klaim XP.</p>
+                    {allItemsClaimed && !hasNewItemsToClaim && (
+                        <p className="text-xs text-center text-emerald-600 mt-2 font-medium">Luar biasa! Semua tugas hari ini sudah tuntas.</p>
+                    )}
+                    {!allItemsClaimed && !hasNewItemsToClaim && (
+                        <p className="text-xs text-center text-gray-500 mt-2">Centang tugas baru untuk klaim XP tambahan.</p>
                     )}
                  </div>
             </div>

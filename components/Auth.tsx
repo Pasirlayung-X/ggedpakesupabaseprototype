@@ -9,88 +9,93 @@ interface AuthComponentProps {
 
 const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose }) => {
   const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
     setError(null);
-    setMessage(null);
-
-    const authUsername = username.trim();
+    setLoading(true);
 
     try {
       if (isLogin) {
-        // Mode Login
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email, // Supabase butuh email, bukan username untuk login default
-          password: password,
-        });
+        // Login Logic: Cari di tabel profiles
+        const { data, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email.trim())
+          .eq('password', password) // Catatan: Dalam produksi, gunakan hashing!
+          .single();
 
-        if (error) throw error;
+        if (fetchError || !data) {
+          throw new Error('Email atau kata sandi salah.');
+        }
+
+        const user = {
+          id: data.id,
+          username: data.username,
+          email: data.email,
+          isLocal: true
+        };
         
-        if (data.user) {
-           setMessage(`Selamat datang kembali!`);
-           // Beri sedikit jeda agar user bisa membaca pesan sukses
-           setTimeout(() => {
-             onAuthSuccess(data.user?.user_metadata?.username);
-           }, 500);
-        }
-
+        localStorage.setItem('gg_edu_user', JSON.stringify(user));
+        onAuthSuccess(data.username);
       } else {
-        // Mode Daftar
-        if (!email.trim() || !authUsername || !password.trim()) {
-          throw new Error('Semua field harus diisi.');
-        }
+        // Signup Logic: Simpan ke tabel profiles
+        if (!username.trim()) throw new Error('Nama pengguna harus diisi.');
+        
+        // Cek apakah email sudah terdaftar
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email.trim())
+          .maybeSingle();
+          
+        if (existing) throw new Error('Email sudah terdaftar.');
 
-        const { data, error } = await supabase.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: {
-              username: authUsername, // Simpan username di metadata
-            },
-          },
-        });
+        const newId = crypto.randomUUID();
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: newId,
+              email: email.trim(),
+              password: password,
+              username: username.trim(),
+              avatar_id: 'cow-1',
+              xp: 0,
+              level: 1
+            }
+          ]);
 
-        if (error) throw error;
+        if (insertError) throw insertError;
 
-        if (data.user) {
-            setMessage(`Pendaftaran berhasil! Selamat datang, ${authUsername}.`);
-            setTimeout(() => {
-                onAuthSuccess(authUsername);
-            }, 500);
-        }
+        const user = {
+          id: newId,
+          username: username.trim(),
+          email: email.trim(),
+          isLocal: true
+        };
+        
+        localStorage.setItem('gg_edu_user', JSON.stringify(user));
+        onAuthSuccess(username.trim());
       }
-    } catch (e: unknown) {
-      setError(e.message || 'Terjadi kesalahan saat autentikasi.');
+    } catch (e: any) {
+      setError(e.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSwitchMode = () => {
-    setIsLogin(!isLogin);
-    setError(null);
-    setMessage(null);
-    setEmail('');
-    setPassword('');
-    setUsername('');
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg transform scale-100 opacity-100 transition-all duration-300 ease-out relative">
-        {/* Tombol Tutup */}
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-lg relative animate-page-enter">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-full p-1"
-          aria-label="Tutup"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-1"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -99,85 +104,76 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
 
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <span className="text-6xl" role="img" aria-label="cow emoji">🐄</span>
+            <img src="/gg-ed.svg" alt="Logo GG-ed" className="h-16 w-auto" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            {isLogin ? 'Selamat Datang Kembali' : 'Buat Akun Baru'}
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isLogin ? 'Selamat Datang Kembali' : 'Bergabung Sekarang'}
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? 'Masuk dengan email Anda untuk melanjutkan.' : 'Bergabunglah untuk peternakan yang lebih baik.'}
+          <p className="mt-1 text-sm text-gray-600">
+            {isLogin ? 'Masuk untuk melanjutkan petualanganmu.' : 'Daftar untuk mulai belajar tentang GRK.'}
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleAuth}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            {/* Field Email selalu dibutuhkan untuk Supabase Auth standar */}
-            <div>
+        <form className="space-y-4" onSubmit={handleAuth}>
+          <div className="space-y-3">
+            {!isLogin && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Pengguna</label>
                 <input
-                id="email-auth"
-                name="email"
+                  type="text"
+                  required
+                  className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
+                  placeholder="Contoh: Peternak Muda"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+              <input
                 type="email"
-                autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                placeholder="Alamat Email"
+                className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
+                placeholder="nama@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                />
+              />
             </div>
-            
-            {/* Username hanya diminta saat Daftar (atau jika ingin login by username, butuh logika khusus di backend/edge function, kita pakai email untuk login sederhana) */}
-            {!isLogin && (
-                <div>
-                <input
-                    id="username-signup"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                    placeholder="Nama Pengguna (untuk tampilan)"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
-                </div>
-            )}
 
             <div>
-                <input
-                id="password-auth"
-                name="password"
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Kata Sandi</label>
+              <input
                 type="password"
-                autoComplete={isLogin ? "current-password" : "new-password"}
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-                placeholder="Kata sandi (min. 6 karakter)"
+                className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                />
+              />
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          {message && <p className="text-sm text-green-600 text-center">{message}</p>}
+          {error && <p className="text-xs text-red-500 text-center font-medium bg-red-50 py-2 rounded-lg">{error}</p>}
 
           <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400 transition-all shadow-md"
             >
-              {loading ? 'Memproses...' : (isLogin ? 'Masuk' : 'Daftar')}
+              {loading ? 'Memproses...' : (isLogin ? 'Masuk' : 'Daftar Sekarang')}
             </button>
           </div>
         </form>
-        
-        <div className="text-sm text-center">
+
+        <div className="text-center">
           <button
-            onClick={handleSwitchMode}
-            className="font-medium text-green-600 hover:text-green-500"
+            onClick={() => { setIsLogin(!isLogin); setError(null); }}
+            className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
           >
-            {isLogin ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Masuk'}
+            {isLogin ? 'Belum punya akun? Daftar di sini' : 'Sudah punya akun? Masuk di sini'}
           </button>
         </div>
       </div>

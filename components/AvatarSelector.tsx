@@ -1,9 +1,10 @@
 
 import React from 'react';
 
-const avatarData = [
+export const avatarData = [
   { 
     id: 'cow-1', 
+    name: 'Sapi Ceria',
     unlockLevel: 1, 
     svg: (
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -17,35 +18,9 @@ const avatarData = [
     )
   },
   { 
-    id: 'farmer-1', 
-    unlockLevel: 3, 
-    svg: (
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="#FEF3C7" />
-        <path d="M30 80 Q50 90 70 80 V100 H30 V80 Z" fill="#D97706" />
-        <circle cx="50" cy="50" r="20" fill="#FDE68A" />
-        <path d="M30 40 H70 L60 20 H40 L30 40 Z" fill="#B45309" />
-        <circle cx="43" cy="50" r="2" fill="#4B5563" />
-        <circle cx="57" cy="50" r="2" fill="#4B5563" />
-        <path d="M45 58 Q50 62 55 58" stroke="#4B5563" strokeWidth="2" />
-      </svg>
-    )
-  },
-  { 
-    id: 'plant', 
-    unlockLevel: 6, 
-    svg: (
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="#D1FAE5" />
-        <path d="M50 80 V40" stroke="#059669" strokeWidth="4" strokeLinecap="round" />
-        <path d="M50 60 Q70 50 70 30 Q50 40 50 60" fill="#10B981" />
-        <path d="M50 60 Q30 50 30 30 Q50 40 50 60" fill="#34D399" />
-      </svg>
-    )
-  },
-  { 
     id: 'cow-2', 
-    unlockLevel: 10, 
+    name: 'Sapi Santai',
+    unlockLevel: 3, 
     svg: (
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="45" fill="#BFDBFE" />
@@ -58,34 +33,62 @@ const avatarData = [
     )
   },
   { 
-    id: 'farmer-2', 
-    unlockLevel: 15, 
+    id: 'cow-3', 
+    name: 'Sapi Pintar',
+    unlockLevel: 5, 
     svg: (
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="#FECACA" />
-        <circle cx="50" cy="55" r="22" fill="#FCA5A5" />
-        <path d="M25 45 C25 30, 75 30, 75 45" fill="#4B5563" />
-        <circle cx="43" cy="55" r="2" fill="#1F2937" />
-        <circle cx="57" cy="55" r="2" fill="#1F2937" />
-        <path d="M47 62 H53" stroke="#1F2937" strokeWidth="2" />
+        <circle cx="50" cy="50" r="45" fill="#DDD6FE" />
+        <path d="M30 40 H70 V70 H30 V40 Z" fill="#4C1D95" />
+        <circle cx="40" cy="55" r="3" fill="white" />
+        <circle cx="60" cy="55" r="3" fill="white" />
+        <rect x="35" y="45" width="30" height="5" fill="#A78BFA" />
       </svg>
     )
   },
   { 
-    id: 'methane', 
-    unlockLevel: 20, 
+    id: 'methane-1', 
+    name: 'Gelembung Metana',
+    unlockLevel: 10, 
     svg: (
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="45" fill="#E5E7EB" />
-        <circle cx="50" cy="50" r="15" fill="#6B7280" />
-        <circle cx="50" cy="25" r="8" fill="#9CA3AF" />
-        <circle cx="75" cy="50" r="8" fill="#9CA3AF" />
-        <circle cx="50" cy="75" r="8" fill="#9CA3AF" />
-        <circle cx="25" cy="50" r="8" fill="#9CA3AF" />
-        <line x1="50" y1="33" x2="50" y2="42" stroke="#6B7280" strokeWidth="2" />
-        <line x1="67" y1="50" x2="58" y2="50" stroke="#6B7280" strokeWidth="2" />
-        <line x1="50" y1="67" x2="50" y2="58" stroke="#6B7280" strokeWidth="2" />
-        <line x1="33" y1="50" x2="42" y2="50" stroke="#6B7280" strokeWidth="2" />
+        <circle cx="50" cy="50" r="45" fill="#E0F2FE" />
+        <circle cx="50" cy="50" r="20" fill="#0EA5E9" fillOpacity="0.6" />
+        <circle cx="35" cy="35" r="10" fill="#0EA5E9" fillOpacity="0.4" />
+        <circle cx="65" cy="65" r="12" fill="#0EA5E9" fillOpacity="0.5" />
+      </svg>
+    )
+  },
+  { 
+    id: 'methane-2', 
+    name: 'Gas Metana',
+    unlockLevel: 15, 
+    svg: (
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#F1F5F9" />
+        <circle cx="50" cy="50" r="15" fill="#64748B" />
+        <circle cx="50" cy="25" r="8" fill="#94A3B8" />
+        <circle cx="75" cy="50" r="8" fill="#94A3B8" />
+        <circle cx="50" cy="75" r="8" fill="#94A3B8" />
+        <circle cx="25" cy="50" r="8" fill="#94A3B8" />
+        <line x1="50" y1="33" x2="50" y2="42" stroke="#64748B" strokeWidth="2" />
+        <line x1="67" y1="50" x2="58" y2="50" stroke="#64748B" strokeWidth="2" />
+        <line x1="50" y1="67" x2="50" y2="58" stroke="#64748B" strokeWidth="2" />
+        <line x1="33" y1="50" x2="42" y2="50" stroke="#64748B" strokeWidth="2" />
+      </svg>
+    )
+  },
+  { 
+    id: 'cow-king', 
+    name: 'Raja Sapi',
+    unlockLevel: 25, 
+    svg: (
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#FEF3C7" />
+        <path d="M30 30 L50 10 L70 30 V50 H30 V30 Z" fill="#F59E0B" />
+        <circle cx="50" cy="60" r="20" fill="#D97706" />
+        <circle cx="43" cy="60" r="3" fill="white" />
+        <circle cx="57" cy="60" r="3" fill="white" />
       </svg>
     )
   },

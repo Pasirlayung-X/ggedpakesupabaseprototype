@@ -17,12 +17,10 @@ import TextSelectionHandler from './components/ai/TextSelectionHandler';
 import SemuaGRK from './pages/grk/SemuaGRK';
 import SemuaMetana from './pages/metana/SemuaMetana';
 import SemuaSolusi from './pages/solusi/SemuaSolusi';
-import LeaderboardPage from './pages/LeaderboardPage';
 import AvatarGalleryPage from './pages/AvatarGalleryPage';
-import StudiKasusPage from './pages/StudiKasusPage';
 
 export type Page = {
-  main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang' | 'profile' | 'leaderboard' | 'avatar_gallery' | 'studi_kasus';
+  main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang' | 'profile' | 'avatar_gallery';
   sub?: string;
 }
 
@@ -96,21 +94,17 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsLoadingSession(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
-        setActivePage({ main: 'beranda' });
+    // Cek login lokal dari localStorage
+    const savedUser = localStorage.getItem('gg_edu_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        setSession({ user } as any);
+      } catch (e) {
+        console.error("Error parsing saved user", e);
       }
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setIsLoadingSession(false);
   }, []);
 
   const isLoggedIn = !!session;
@@ -127,6 +121,11 @@ const App: React.FC = () => {
   };
 
   const onAuthSuccess = () => {
+    const savedUser = localStorage.getItem('gg_edu_user');
+    if (savedUser) {
+      setSession({ user: JSON.parse(savedUser) } as any);
+    }
+    
     setShowAuthModal(false);
     if (postLoginAction?.action === 'openChat') {
         if (postLoginAction.payload?.initialPrompt) {
@@ -149,8 +148,10 @@ const App: React.FC = () => {
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('gg_edu_user');
+    setSession(null);
+    setActivePage({ main: 'beranda' });
   };
   
   const handleProfileUpdate = () => {
@@ -172,9 +173,7 @@ const App: React.FC = () => {
     if (main === 'grk') return <SemuaGRK onFinish={() => handleNavigate('beranda')} />;
     if (main === 'metana') return <SemuaMetana onFinish={() => handleNavigate('beranda')} />;
     if (main === 'solusi') return <SemuaSolusi onFinish={() => handleNavigate('beranda')} />;
-    if (main === 'leaderboard') return <LeaderboardPage />;
     if (main === 'avatar_gallery') return <AvatarGalleryPage user={user!} onNavigate={handleNavigate} />;
-    if (main === 'studi_kasus') return <StudiKasusPage />;
 
     return <Beranda onNavigate={handleNavigate} />;
   };
@@ -201,7 +200,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           profileVersion={profileVersion}
         />
-        <main className="container mx-auto p-4 md:p-8 flex-grow">
+        <main className="container mx-auto px-4 py-6 md:px-8 md:py-10 flex-grow max-w-7xl">
           {renderPage()}
         </main>
         <footer className="bg-white mt-12 py-6 border-t border-gray-200">
