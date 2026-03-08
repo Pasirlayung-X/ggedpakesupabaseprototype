@@ -54,7 +54,8 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
                 .single();
             
             if (data) {
-                setDisplayName(data.username || 'Peternak');
+                const localRole = localStorage.getItem(`gg_edu_role_${user.id}`);
+                setDisplayName(data.username || (localRole === 'umum' ? 'Pejuang Lingkungan' : 'Peternak'));
                 setAvatarId(data.avatar_id || 'cow-1');
                 setXp(data.xp || 0);
                 setLevel(data.level || 1);

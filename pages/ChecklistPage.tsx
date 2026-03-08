@@ -6,13 +6,22 @@ import type { ChecklistItem, DailyLog, UserProfile } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 // Data default untuk inisialisasi user baru (Daily Routine)
-const DEFAULT_TASKS = [
+const DEFAULT_TASKS_PETERNAK = [
   { task: "Pemberian Pakan Pagi", description: "Berikan pakan berkualitas pada pukul 07:00." },
   { task: "Pembersihan Kandang", description: "Bersihkan sisa pakan dan kotoran agar lingkungan sehat." },
   { task: "Pemeriksaan Air Minum", description: "Pastikan wadah air minum terisi penuh dan bersih." },
   { task: "Pemantauan Kesehatan", description: "Cek kondisi fisik ternak, pastikan tidak ada yang lesu." },
   { task: "Pengolahan Limbah", description: "Kumpulkan kotoran harian untuk proses biogas/kompos." },
   { task: "Pemberian Pakan Sore", description: "Berikan pakan tambahan pada pukul 16:00." },
+];
+
+const DEFAULT_TASKS_UMUM = [
+  { task: "Pisahkan Sampah Organik", description: "Pisahkan sisa makanan untuk dijadikan kompos." },
+  { task: "Gunakan Transportasi Ramah Lingkungan", description: "Gunakan transportasi umum, bersepeda, atau berjalan kaki hari ini." },
+  { task: "Hemat Penggunaan Listrik", description: "Matikan lampu dan alat elektronik yang tidak digunakan." },
+  { task: "Kurangi Konsumsi Daging Merah", description: "Pilih sumber protein alternatif hari ini untuk mengurangi jejak karbon." },
+  { task: "Bawa Tas Belanja Sendiri", description: "Kurangi penggunaan plastik sekali pakai saat berbelanja." },
+  { task: "Edukasi Diri", description: "Baca satu artikel atau informasi tentang pengurangan emisi Gas Rumah Kaca." },
 ];
 
 interface ChecklistPageProps {
@@ -164,7 +173,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
         // Buat profil default jika belum ada
          const defaultProfile: UserProfile = {
             id: user.id,
-            username: user.user_metadata?.username || 'Peternak',
+            username: user.user_metadata?.username || 'Pengguna',
             avatar_id: 'cow-1',
             notification_enabled: false,
             notification_time: '08:00',
@@ -195,9 +204,12 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
       if (error) throw error;
 
+      const role = localStorage.getItem(`gg_edu_role_${user.id}`) || 'peternak';
+
       if (!data || data.length === 0) {
         // Seed default tasks jika user belum punya tugas
-        const seedData = DEFAULT_TASKS.map(t => ({ ...t, user_id: user.id }));
+        const defaultTasks = role === 'umum' ? DEFAULT_TASKS_UMUM : DEFAULT_TASKS_PETERNAK;
+        const seedData = defaultTasks.map(t => ({ ...t, user_id: user.id }));
         const { data: newData, error: seedError } = await supabase
             .from('checklist_tasks')
             .insert(seedData)
@@ -206,12 +218,23 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
         if (seedError) throw seedError;
         setTasks(newData || []);
       } else {
-        setTasks(data);
+        // Migration for users who got the wrong default tasks
+        const hasPeternakTask = data.some(t => t.task === 'Pemberian Pakan Pagi');
+        if (role === 'umum' && hasPeternakTask) {
+            await supabase.from('checklist_tasks').delete().eq('user_id', user.id);
+            const seedData = DEFAULT_TASKS_UMUM.map(t => ({ ...t, user_id: user.id }));
+            const { data: newData } = await supabase.from('checklist_tasks').insert(seedData).select();
+            setTasks(newData || []);
+        } else {
+            setTasks(data);
+        }
       }
     } catch (err: unknown) {
       console.error("Error fetching tasks:", err);
       // Fallback to static if DB fails just to show something
-      setTasks(DEFAULT_TASKS.map((t, i) => ({ ...t, id: i + 1 }))); 
+      const role = localStorage.getItem(`gg_edu_role_${user.id}`) || 'peternak';
+      const defaultTasks = role === 'umum' ? DEFAULT_TASKS_UMUM : DEFAULT_TASKS_PETERNAK;
+      setTasks(defaultTasks.map((t, i) => ({ ...t, id: i + 1 }))); 
     }
   }, [isLoggedIn, user]);
 
@@ -285,15 +308,18 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
 
   // Initial Load
   useEffect(() => {
+    let isMounted = true;
     const init = async () => {
+        if (!isLoggedIn || !user) return;
         setLoading(true);
         await fetchProfile();
         await fetchTasks();
         await fetchDailyLogs();
-        setLoading(false);
+        if (isMounted) setLoading(false);
     };
     init();
-  }, [fetchProfile, fetchTasks, fetchDailyLogs]);
+    return () => { isMounted = false; };
+  }, [isLoggedIn, user]); // Removed fetch dependencies to prevent infinite loops
 
   // --- CLEANUP LOGIC ---
   useEffect(() => {
@@ -475,7 +501,7 @@ const ChecklistPage: React.FC<ChecklistPageProps> = ({ user, isLoggedIn }) => {
         
         <div className="md:grid md:grid-cols-2 md:gap-8">
             <div className="flex flex-col h-full">
-                {loading && <p className="text-emerald-600 animate-pulse mb-2">Menyelaraskan data...</p>}
+                {loading && <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-xl"><p className="text-emerald-600 font-semibold animate-pulse">Menyelaraskan data...</p></div>}
                 {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
                 
                 {/* Progress Bar */}

@@ -225,7 +225,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onProfileUpdate, onNavi
         
         <div className="p-8 pt-16">
             <div className="text-center mb-6">
-                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center">{username || 'Peternak Cerdas'} {username.toLowerCase() === 'dyas ganteng' && <SultanBadge />}</h2>
+                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center">{username || (localStorage.getItem(`gg_edu_role_${user.id}`) === 'umum' ? 'Pejuang Lingkungan' : 'Peternak Cerdas')} {username.toLowerCase() === 'dyas ganteng' && <SultanBadge />}</h2>
                  <p className={`text-sm font-semibold ${currentTier.color}`}>{currentTier.name} (Level {profile.level})</p>
                  <p className="text-xs text-gray-500 italic mt-1">"{currentTier.desc}"</p>
             </div>

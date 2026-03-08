@@ -13,6 +13,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [role, setRole] = useState<'peternak' | 'umum'>('peternak');
   const [error, setError] = useState<string | null>(null);
 
   const handleAuth = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -38,6 +39,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
           id: data.id,
           username: data.username,
           email: data.email,
+          role: localStorage.getItem(`gg_edu_role_${data.id}`) || 'peternak', // Fallback to local storage or default
           isLocal: true
         };
         
@@ -77,9 +79,11 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
           id: newId,
           username: username.trim(),
           email: email.trim(),
+          role: role,
           isLocal: true
         };
         
+        localStorage.setItem(`gg_edu_role_${newId}`, role);
         localStorage.setItem('gg_edu_user', JSON.stringify(user));
         onAuthSuccess(username.trim());
       }
@@ -117,17 +121,30 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onAuthSuccess, onClose })
         <form className="space-y-4" onSubmit={handleAuth}>
           <div className="space-y-3">
             {!isLogin && (
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Pengguna</label>
-                <input
-                  type="text"
-                  required
-                  className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
-                  placeholder="Contoh: Peternak Muda"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Pengguna</label>
+                  <input
+                    type="text"
+                    required
+                    className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
+                    placeholder="Contoh: Peternak Muda"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Peran Anda</label>
+                  <select
+                    className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent sm:text-sm bg-gray-50"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as 'peternak' | 'umum')}
+                  >
+                    <option value="peternak">Peternak Sapi</option>
+                    <option value="umum">Masyarakat Umum</option>
+                  </select>
+                </div>
+              </>
             )}
             
             <div>

@@ -4,6 +4,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 
 interface ContentPageProps {
   onAdvance?: () => void; // Optional, but DataMetana won't display a button
+  userRole?: string;
 }
 
 const gwpData = [
@@ -16,7 +17,8 @@ const lifetimeData = [
     { gas: 'Metana (CH4)', value: 12, color: '#F59E0B' },
 ];
 
-const DataMetana: React.FC<ContentPageProps> = () => {
+const DataMetana: React.FC<ContentPageProps> = ({ userRole = 'peternak' }) => {
+    const isUmum = userRole === 'umum';
     // Tooltip style for consistency
     const tooltipContentStyle = {
         backgroundColor: '#ffffff',
@@ -97,11 +99,23 @@ const DataMetana: React.FC<ContentPageProps> = () => {
                 </div>
 
                 <div className="text-left mt-8 p-6 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <h4 className="font-bold text-lg text-emerald-800 mb-2">Mengapa Ini Penting bagi Peternak?</h4>
+                    <h4 className="font-bold text-lg text-emerald-800 mb-2">
+                        {isUmum ? 'Mengapa Ini Penting bagi Kita Semua?' : 'Mengapa Ini Penting bagi Peternak?'}
+                    </h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-700">
-                        <li><strong>Dampak Cepat:</strong> Mengurangi emisi metana dari peternakan akan memberikan hasil yang lebih cepat dalam memperlambat pemanasan global dibanding mengurangi CO2.</li>
-                        <li><strong>Kontrol Langsung:</strong> Sebagai peternak, Anda memiliki kontrol langsung atas sumber-sumber metana (pakan dan kotoran) di operasional Anda.</li>
-                        <li><strong>Peluang Inovasi:</strong> Mengelola metana bisa berarti energi baru (biogas) dan pupuk alami, mengubah masalah menjadi solusi!</li>
+                        {isUmum ? (
+                            <>
+                                <li><strong>Dampak Cepat:</strong> Mengurangi emisi metana akan memberikan hasil yang lebih cepat dalam memperlambat pemanasan global dibanding mengurangi CO2.</li>
+                                <li><strong>Aksi Nyata:</strong> Kita semua bisa berkontribusi dengan mengurangi sampah makanan dan mendukung produk pertanian berkelanjutan.</li>
+                                <li><strong>Peluang Inovasi:</strong> Mengelola sampah organik menjadi kompos atau biogas mengubah masalah lingkungan menjadi sumber daya yang bermanfaat!</li>
+                            </>
+                        ) : (
+                            <>
+                                <li><strong>Dampak Cepat:</strong> Mengurangi emisi metana dari peternakan akan memberikan hasil yang lebih cepat dalam memperlambat pemanasan global dibanding mengurangi CO2.</li>
+                                <li><strong>Kontrol Langsung:</strong> Sebagai peternak, Anda memiliki kontrol langsung atas sumber-sumber metana (pakan dan kotoran) di operasional Anda.</li>
+                                <li><strong>Peluang Inovasi:</strong> Mengelola metana bisa berarti energi baru (biogas) dan pupuk alami, mengubah masalah menjadi solusi!</li>
+                            </>
+                        )}
                     </ul>
                 </div>
                 <p className="text-sm text-gray-500 mt-6">

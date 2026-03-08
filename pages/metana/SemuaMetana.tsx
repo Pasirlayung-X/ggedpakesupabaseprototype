@@ -8,9 +8,10 @@ import PageStepper from '../../components/PageStepper';
 
 interface SemuaMetanaProps {
   onFinish: () => void;
+  userRole?: string;
 }
 
-const SemuaMetana: React.FC<SemuaMetanaProps> = ({ onFinish }) => {
+const SemuaMetana: React.FC<SemuaMetanaProps> = ({ onFinish, userRole = 'peternak' }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
   const sections = [
@@ -28,7 +29,7 @@ const SemuaMetana: React.FC<SemuaMetanaProps> = ({ onFinish }) => {
   return (
     <div className="space-y-8 animate-page-enter">
       <h1 className="text-4xl md:text-5xl font-extrabold text-emerald-700 text-center mb-8">
-        Mengenal Gas Metana dari Peternakan Sapi
+        {userRole === 'umum' ? 'Mengenal Gas Metana dan Sumbernya' : 'Mengenal Gas Metana dari Peternakan Sapi'}
       </h1>
 
       {sections.map((section, index) => {
@@ -41,6 +42,7 @@ const SemuaMetana: React.FC<SemuaMetanaProps> = ({ onFinish }) => {
             <Component
               key={section.id}
               onAdvance={isCurrentSection && !isLastSectionInList ? handleAdvance : undefined}
+              userRole={userRole}
             />
           );
         }

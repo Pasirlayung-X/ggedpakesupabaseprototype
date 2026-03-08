@@ -3,6 +3,7 @@ import Accordion from '../../components/Accordion'; // Import Accordion
 
 interface ContentPageProps {
   onAdvance?: () => void; // Optional. Only present if it's the current section and not the last overall.
+  userRole?: string;
 }
 
 const PenyebabGRK: React.FC<ContentPageProps> = ({ onAdvance }) => {

@@ -13,22 +13,25 @@ import PageStepper from '../../components/PageStepper';
 
 interface SemuaSolusiProps {
   onFinish: () => void;
+  userRole?: string;
 }
 
-const SemuaSolusi: React.FC<SemuaSolusiProps> = ({ onFinish }) => {
+const SemuaSolusi: React.FC<SemuaSolusiProps> = ({ onFinish, userRole = 'peternak' }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
-  const sections = [
-    { id: 'peternak', component: SolusiPeternak },
-    { id: 'pakan', component: SolusiPakan },
-    { id: 'kotoran', component: SolusiKotoran },
-    { id: 'biogas', component: SolusiBiogas }, // Tambahkan halaman baru di sini
-    { id: 'kesehatan', component: SolusiKesehatan },
-    { id: 'sesama', component: SolusiSesama },
-    { id: 'dukung', component: SolusiDukung },
-    { id: 'sampah', component: SolusiSampah },
-    { id: 'edukasi', component: SolusiEdukasi },
+  const allSections = [
+    { id: 'peternak', component: SolusiPeternak, role: 'peternak' },
+    { id: 'pakan', component: SolusiPakan, role: 'peternak' },
+    { id: 'kotoran', component: SolusiKotoran, role: 'peternak' },
+    { id: 'biogas', component: SolusiBiogas, role: 'peternak' },
+    { id: 'kesehatan', component: SolusiKesehatan, role: 'peternak' },
+    { id: 'sesama', component: SolusiSesama, role: 'umum' },
+    { id: 'dukung', component: SolusiDukung, role: 'umum' },
+    { id: 'sampah', component: SolusiSampah, role: 'umum' },
+    { id: 'edukasi', component: SolusiEdukasi, role: 'umum' },
   ];
+
+  const sections = allSections.filter(s => s.role === userRole);
 
   const handleAdvance = () => {
     setCurrentSectionIndex((prevIndex) => prevIndex + 1);

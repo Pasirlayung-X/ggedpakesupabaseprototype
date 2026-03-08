@@ -4,6 +4,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recha
 
 interface ContentPageProps {
   onAdvance?: () => void; // Optional, but DataGRK won't display a button
+  userRole?: string;
 }
 
 const data = [

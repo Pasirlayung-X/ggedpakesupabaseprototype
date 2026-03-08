@@ -11,24 +11,9 @@ const SolusiBiogas: React.FC<ContentPageProps> = ({ onAdvance }) => {
     <div className="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
       <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 text-center">Panduan Sistem Biogas Sederhana</h2>
       
-      <Accordion title="Video Penjelasan Praktis" defaultOpen={true}>
-        <p className="text-center text-gray-600 mb-4">Tonton video berikut untuk mendapatkan gambaran visual yang jelas tentang cara kerja dan pembuatan sistem biogas skala rumah tangga.</p>
-        <div className="aspect-w-16 aspect-h-9">
-           <iframe
-                className="w-full h-full rounded-lg shadow-md"
-                style={{aspectRatio: "16/9"}}
-                src="https://www.youtube.com/embed/-AuzetKlTzA"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen>
-            </iframe>
-        </div>
-      </Accordion>
-
-      <Accordion title="Langkah-Langkah Utama Pembuatan (Penjelasan Teks)" defaultOpen={true}>
+      <Accordion title="Langkah-Langkah Utama Pembuatan Biogas" defaultOpen={true}>
         <div className="text-lg text-gray-700 space-y-4">
-            <p>Video di atas memberikan panduan lengkap. Berikut adalah rangkuman langkah-langkah kunci yang perlu diperhatikan:</p>
+            <p>Berikut adalah panduan langkah-langkah kunci yang perlu diperhatikan dalam pembuatan sistem biogas skala rumah tangga:</p>
             <ol className="list-decimal list-inside space-y-3 pl-2 marker:text-emerald-600 marker:font-bold">
                 <li>
                     <strong>Persiapan Lokasi & Bahan:</strong> Pilih lokasi yang dekat dengan kandang untuk memudahkan pengangkutan kotoran. Siapkan bahan utama seperti drum bekas (untuk digester dan penampung gas), pipa PVC, dan selang.

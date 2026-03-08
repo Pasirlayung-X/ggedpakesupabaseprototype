@@ -10,7 +10,7 @@ const TentangGGEdu: React.FC = () => {
         GG-ed adalah singkatan dari <span className="font-semibold text-emerald-600">Greenhouse Gas Education</span>.
       </p>
       <p className="max-w-3xl mx-auto text-lg text-gray-600">
-        Kami hadir sebagai platform edukasi online yang didedikasikan untuk memberdayakan para peternak sapi dalam memahami dan memitigasi emisi gas rumah kaca, khususnya metana, yang berasal dari limbah peternakan. Melalui informasi yang mudah diakses dan solusi praktis, kami bertujuan untuk membantu menciptakan praktik peternakan yang lebih berkelanjutan, efisien, dan ramah lingkungan.
+        Kami hadir sebagai platform edukasi online yang didedikasikan untuk memberdayakan masyarakat umum dan peternak sapi dalam memahami dan memitigasi emisi gas rumah kaca, khususnya metana. Melalui informasi yang mudah diakses dan solusi praktis, kami bertujuan untuk membantu menciptakan gaya hidup dan praktik peternakan yang lebih berkelanjutan, efisien, dan ramah lingkungan.
       </p>
     </div>
   );

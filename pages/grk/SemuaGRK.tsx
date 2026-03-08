@@ -7,9 +7,10 @@ import PageStepper from '../../components/PageStepper';
 
 interface SemuaGRKProps {
   onFinish: () => void;
+  userRole?: string;
 }
 
-const SemuaGRK: React.FC<SemuaGRKProps> = ({ onFinish }) => {
+const SemuaGRK: React.FC<SemuaGRKProps> = ({ onFinish, userRole = 'peternak' }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
 
   const sections = [
@@ -40,6 +41,7 @@ const SemuaGRK: React.FC<SemuaGRKProps> = ({ onFinish }) => {
               key={section.id}
               // Hanya berikan prop onAdvance ke bagian yang sedang aktif DAN BUKAN bagian terakhir dari list
               onAdvance={isCurrentSection && !isLastSectionInList ? handleAdvance : undefined}
+              userRole={userRole}
             />
           );
         }

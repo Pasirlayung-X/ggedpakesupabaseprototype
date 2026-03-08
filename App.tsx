@@ -9,9 +9,6 @@ import TentangGGEdu from './pages/TentangGGEdu';
 import AuthComponent from './components/Auth';
 import ProfilePage from './pages/ProfilePage';
 import NotificationManager from './components/NotificationManager';
-import AIChat from './components/ai/AIChat';
-import TextSelectionHandler from './components/ai/TextSelectionHandler';
-
 
 // Import halaman konsolidasi yang baru
 import SemuaGRK from './pages/grk/SemuaGRK';
@@ -24,23 +21,12 @@ export type Page = {
   sub?: string;
 }
 
-type PostLoginAction = {
-    action: 'openChat';
-    payload?: { initialPrompt: string };
-} | null;
-
-
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [activePage, setActivePage] = useState<Page>({ main: 'beranda' });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [profileVersion, setProfileVersion] = useState(0);
-
-  // State untuk AI Chat & Post-Login Actions
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
-  const [postLoginAction, setPostLoginAction] = useState<PostLoginAction>(null);
 
   const fetchUserAvatar = useCallback(async (userId: string) => {
     try {
@@ -61,38 +47,6 @@ const App: React.FC = () => {
     }
   }, [session, profileVersion, fetchUserAvatar]);
 
-  const handleOpenChat = () => {
-    if (!isLoggedIn) {
-        setPostLoginAction({ action: 'openChat' });
-        setShowAuthModal(true);
-    } else {
-        setInitialPrompt(undefined); // Hapus prompt lama saat membuka manual
-        setIsChatOpen(true);
-    }
-  };
-
-
-  const handleTextSelection = useCallback((text: string) => {
-    const prompt = `Jelaskan lebih lanjut tentang ini: "${text}"`;
-    if (!isLoggedIn) {
-        setPostLoginAction({ action: 'openChat', payload: { initialPrompt: prompt } });
-        setShowAuthModal(true);
-    } else {
-        setInitialPrompt(prompt);
-        setIsChatOpen(true);
-    }
-  }, [!!session]);
-
-  const handleChatClose = () => {
-      setIsChatOpen(false);
-      if (initialPrompt) {
-          setTimeout(() => {
-              setInitialPrompt(undefined);
-          }, 300);
-      }
-  };
-
-
   useEffect(() => {
     // Cek login lokal dari localStorage
     const savedUser = localStorage.getItem('gg_edu_user');
@@ -111,7 +65,6 @@ const App: React.FC = () => {
 
   const handleNavigate = (main: Page['main'], sub?: string) => {
     if ((main === 'checklist' || main === 'profile') && !isLoggedIn) {
-      setPostLoginAction(null); // Clear AI intent
       setShowAuthModal(true);
       setActivePage({ main, sub });
       return; 
@@ -127,13 +80,7 @@ const App: React.FC = () => {
     }
     
     setShowAuthModal(false);
-    if (postLoginAction?.action === 'openChat') {
-        if (postLoginAction.payload?.initialPrompt) {
-            setInitialPrompt(postLoginAction.payload.initialPrompt);
-        }
-        setIsChatOpen(true);
-        setPostLoginAction(null);
-    } else if (activePage.main === 'checklist' || activePage.main === 'profile') {
+    if (activePage.main === 'checklist' || activePage.main === 'profile') {
       setActivePage({ main: activePage.main });
     } else {
       setActivePage({ main: 'beranda' });
@@ -142,7 +89,6 @@ const App: React.FC = () => {
 
   const onCloseAuthModal = () => {
     setShowAuthModal(false);
-    setPostLoginAction(null); // Hapus intent jika modal ditutup
     if ((activePage.main === 'checklist' || activePage.main === 'profile') && !isLoggedIn) {
       setActivePage({ main: 'beranda' });
     }
@@ -161,8 +107,9 @@ const App: React.FC = () => {
   const renderPage = () => {
     const { main } = activePage;
     const user = session?.user || null;
+    const userRole = (user as any)?.role || 'peternak';
 
-    if (main === 'beranda') return <Beranda onNavigate={handleNavigate} />;
+    if (main === 'beranda') return <Beranda onNavigate={handleNavigate} userRole={userRole} />;
     if (main === 'checklist') return <ChecklistPage user={user} isLoggedIn={isLoggedIn} />;
     if (main === 'profile') {
       if (!user) return null; // Safety check
@@ -170,12 +117,12 @@ const App: React.FC = () => {
     }
     if (main === 'tentang') return <TentangGGEdu />;
     
-    if (main === 'grk') return <SemuaGRK onFinish={() => handleNavigate('beranda')} />;
-    if (main === 'metana') return <SemuaMetana onFinish={() => handleNavigate('beranda')} />;
-    if (main === 'solusi') return <SemuaSolusi onFinish={() => handleNavigate('beranda')} />;
+    if (main === 'grk') return <SemuaGRK onFinish={() => handleNavigate('beranda')} userRole={userRole} />;
+    if (main === 'metana') return <SemuaMetana onFinish={() => handleNavigate('beranda')} userRole={userRole} />;
+    if (main === 'solusi') return <SemuaSolusi onFinish={() => handleNavigate('beranda')} userRole={userRole} />;
     if (main === 'avatar_gallery') return <AvatarGalleryPage user={user!} onNavigate={handleNavigate} />;
 
-    return <Beranda onNavigate={handleNavigate} />;
+    return <Beranda onNavigate={handleNavigate} userRole={userRole} />;
   };
 
   if (isLoadingSession) {
@@ -185,7 +132,6 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen progress-background text-gray-800 flex flex-col">
       <NotificationManager userId={session?.user?.id} />
-      <TextSelectionHandler onSelect={handleTextSelection} />
 
       {showAuthModal && (
         <AuthComponent onAuthSuccess={onAuthSuccess} onClose={onCloseAuthModal} />
@@ -209,15 +155,6 @@ const App: React.FC = () => {
           </div>
         </footer>
       </div>
-
-      <AIChat 
-        isOpen={isChatOpen} 
-        onClose={handleChatClose} 
-        onOpen={handleOpenChat}
-        initialPrompt={initialPrompt}
-        isLoggedIn={isLoggedIn}
-        userAvatarId={session?.user?.id ?? ''}
-      />
     </div>
   );
 };
