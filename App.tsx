@@ -15,6 +15,7 @@ import SemuaGRK from './pages/grk/SemuaGRK';
 import SemuaMetana from './pages/metana/SemuaMetana';
 import SemuaSolusi from './pages/solusi/SemuaSolusi';
 import AvatarGalleryPage from './pages/AvatarGalleryPage';
+import FeedbackPage from './pages/FeedbackPage';
 
 export type Page = {
   main: 'beranda' | 'grk' | 'metana' | 'solusi' | 'checklist' | 'tentang' | 'profile' | 'avatar_gallery';
@@ -23,6 +24,7 @@ export type Page = {
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const isFeedbackRoute = window.location.pathname === '/feedback';
   const [activePage, setActivePage] = useState<Page>({ main: 'beranda' });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
@@ -127,6 +129,31 @@ const App: React.FC = () => {
 
   if (isLoadingSession) {
     return <div className="min-h-screen flex items-center justify-center bg-emerald-50">Memuat aplikasi...</div>;
+  }
+
+  if (isFeedbackRoute) {
+    return (
+      <div className="min-h-screen progress-background text-gray-800 flex flex-col">
+        <header className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
+            <a href="/" className="flex items-center cursor-pointer transform hover:scale-105 transition-transform">
+              <img src="/gg-ed.svg" alt="Logo GG-ed" className="h-10 md:h-12 w-auto" />
+            </a>
+            <a href="/" className="text-sm font-bold text-emerald-700 hover:text-emerald-800">
+              &larr; Kembali ke Aplikasi
+            </a>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-6 md:px-8 md:py-10 flex-grow max-w-3xl w-full">
+           <FeedbackPage user={session?.user || null} />
+        </main>
+        <footer className="bg-white mt-12 py-6 border-t border-gray-200">
+          <div className="container mx-auto text-center text-sm text-gray-500">
+            <p>2025 GreenHouse Gas Edu. For educational purpose.</p>
+          </div>
+        </footer>
+      </div>
+    );
   }
 
   return (

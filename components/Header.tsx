@@ -89,6 +89,9 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
             <NavItem page="metana" activePage={activePage} onClick={() => handleMainPageClick('metana')}>Metana</NavItem>
             <NavItem page="solusi" activePage={activePage} onClick={() => handleMainPageClick('solusi')}>Solusi</NavItem>
             <NavItem page="tentang" activePage={activePage} onClick={() => handleMainPageClick('tentang')}>Tentang GG-ed</NavItem>
+            <a href="/feedback" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm transition-colors duration-200 flex items-center text-gray-600 hover:text-emerald-600 font-semibold">
+              Saran
+            </a>
             
              <button
               onClick={() => onNavigate('checklist')}
@@ -171,6 +174,7 @@ const Header: React.FC<HeaderProps> = ({ user, isLoggedIn, activePage, onNavigat
             <button onClick={() => handleMainPageClick('metana')} className="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl">Metana</button>
             <button onClick={() => handleMainPageClick('solusi')} className="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl">Solusi</button>
             <button onClick={() => handleMainPageClick('tentang')} className="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl">Tentang GG-ed</button>
+            <a href="/feedback" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl">Saran & Feedback</a>
             <div className="pt-4">
               <button 
                 onClick={() => handleMainPageClick('checklist')}
